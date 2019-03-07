@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="176dp"
+    android:background="@color/colorPrimaryDarkest"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <ImageView
+        android:id="@+id/navigation_header_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
+        android:padding="@dimen/text_margin"
+        android:layout_margin="@dimen/text_margin"
+        android:src="@mipmap/ic_logo_round" />
+
+    <Button
+        android:id="@+id/navigation_header_button"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Default Department"
+        android:layout_centerInParent="true"
+        android:padding="@dimen/text_margin"
+        android:layout_margin="@dimen/text_margin"
+        android:layout_alignParentRight="true"
+        android:layout_toEndOf="@id/navigation_header_logo"
+        />
+
+
+
+</RelativeLayout>

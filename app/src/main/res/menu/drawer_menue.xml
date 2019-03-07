@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_message"
+            android:icon="@drawable/ic_email"
+            android:title="Email" />
+        <item
+            android:id="@+id/nav_bookmark"
+            android:icon="@drawable/ic_bookmark"
+            android:title="Bookmark" />
+        <item
+            android:id="@+id/nav_camera"
+            android:icon="@drawable/ic_camera"
+            android:title="Kamera" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_cloud"
+                android:icon="@drawable/ic_cloud"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_landscape"
+                android:icon="@drawable/ic_landscape"
+                android:title="Landscape" />
+        </menu>
+    </item>
+</menu>

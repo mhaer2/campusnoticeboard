@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "767982009867",
+    "firebase_url": "https://campusnoticeboard-52282.firebaseio.com",
+    "project_id": "campusnoticeboard-52282",
+    "storage_bucket": "campusnoticeboard-52282.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767982009867:android:f1f18f751eb9391a",
+        "android_client_info": {
+          "package_name": "de.haertel.hawapp.campusnoticeboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "767982009867-auuaa6duggfltddd1a043tdig97qinc5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "de.haertel.hawapp.campusnoticeboard",
+            "certificate_hash": "3f7723183a3943735083c57b504093b5188b16c4"
+          }
+        },
+        {
+          "client_id": "767982009867-r5fhidadcbu5lgcascauh38vifqveogc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYVPIjm94ZYF7HwUGj0As2wMMRYwmVQk4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767982009867-andfjopn9hoh91jlpr4o9nghqfvi6itk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
