@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity"
+    tools:openDrawer="start">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/selection_header"
+
+        >
+        <!--app:menu="@menu/drawer_menue" >-->
+        <!--<LinearLayout-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:orientation="vertical">-->
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/navigation_header_height">
+
+            <ScrollView
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/scrollViewDrawer"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="true"
+                >
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:textColor="@color/white"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:background="@color/colorGreyDarkest"
+                        android:textSize="18dp"
+                        android:text="Fakultäten"/>
+                    <de.haertel.hawapp.campusnoticeboard.impl.NestedListView
+                        android:id="@+id/navigationmenufaculty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white">
+
+                    </de.haertel.hawapp.campusnoticeboard.impl.NestedListView>
+                    <!--<ExpandableListView-->
+                        <!--android:id="@+id/navigationmenufaculty"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:background="@color/white"-->
+                        <!--&gt;-->
+                    <!--</ExpandableListView>-->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:textColor="@color/white"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:background="@color/colorGreyDarkest"
+                        android:textSize="18dp"
+                        android:text="Allgemein"/>
+
+                    <de.haertel.hawapp.campusnoticeboard.impl.NestedListView
+                        android:id="@+id/navigationmenugeneral"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white">
+
+                    </de.haertel.hawapp.campusnoticeboard.impl.NestedListView>
+                    <!--<ExpandableListView-->
+                        <!--android:id="@+id/navigationmenugeneral"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:background="@color/white"-->
+                        <!--android:nestedScrollingEnabled="false"-->
+                        <!--android:scrollbars="none" >-->
+                    <!--</ExpandableListView>-->
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+
+        <!--</LinearLayout>-->
+    </android.support.design.widget.NavigationView>
+
+
+</android.support.v4.widget.DrawerLayout>
+
+

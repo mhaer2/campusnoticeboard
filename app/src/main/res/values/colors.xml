@@ -5,5 +5,12 @@
     <color name="colorPrimaryLight">#E12942</color>
     <color name="colorPrimaryDark">#9D0016</color>
     <color name="colorPrimaryDarkest">#750010</color>
+    <color name="colorGrey">#737373</color>
+    <color name="colorGreyLightest">#A6A5A5</color>
+    <color name="colorGreyLight">#8C8C8C</color>
+    <color name="colorGreyDark">#555555</color>
+    <color name="colorGreyDarkest">#333333</color>
+    <color name="black">#000000</color>
+    <color name="white">#ffffff</color>
     <color name="colorAccent">#23C700</color>
 </resources>
