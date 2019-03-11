@@ -1,4 +1,4 @@
-package de.haertel.hawapp.campusnoticeboard.impl;
+package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation;
 
 import android.content.Context;
 import android.util.AttributeSet;

@@ -1,4 +1,4 @@
-package de.haertel.hawapp.campusnoticeboard.impl.navigationMenuData;
+package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;

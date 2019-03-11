@@ -1,4 +1,4 @@
-package de.haertel.hawapp.campusnoticeboard.impl;
+package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.HashMap;

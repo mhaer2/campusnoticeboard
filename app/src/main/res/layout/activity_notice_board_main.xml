@@ -72,13 +72,13 @@
                         android:background="@color/colorGreyDarkest"
                         android:textSize="18dp"
                         android:text="Fakultäten"/>
-                    <de.haertel.hawapp.campusnoticeboard.impl.NestedListView
+                    <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenufaculty"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@color/white">
 
-                    </de.haertel.hawapp.campusnoticeboard.impl.NestedListView>
+                    </de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView>
                     <!--<ExpandableListView-->
                         <!--android:id="@+id/navigationmenufaculty"-->
                         <!--android:layout_width="match_parent"-->
@@ -97,13 +97,13 @@
                         android:textSize="18dp"
                         android:text="Allgemein"/>
 
-                    <de.haertel.hawapp.campusnoticeboard.impl.NestedListView
+                    <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenugeneral"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@color/white">
 
-                    </de.haertel.hawapp.campusnoticeboard.impl.NestedListView>
+                    </de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView>
                     <!--<ExpandableListView-->
                         <!--android:id="@+id/navigationmenugeneral"-->
                         <!--android:layout_width="match_parent"-->
