@@ -58,6 +58,7 @@ public class NavigationMenuDataHandler {
 
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
+            @SuppressWarnings("unchecked")
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 arrayList = (ArrayList<HashMap<String, String>>) dataSnapshot.getValue();
                 menuEntryViewModel.deleteAllMenuEntries();
@@ -65,9 +66,10 @@ public class NavigationMenuDataHandler {
                 menuEntryViewModel.getAllMenuEntries().observe((LifecycleOwner) mainActivity, new Observer<List<MenuEntry>>() {
                     @Override
                     public void onChanged(@Nullable final List<MenuEntry> menuEntries) {
-
-                        _prepareNavigationMenu(mainActivity.getString(R.string.facultyTopic), menuEntries);
-                        _prepareNavigationMenu(mainActivity.getString(R.string.generalTopic), menuEntries);
+                        if (menuEntries != null){
+                            _prepareNavigationMenu(mainActivity.getString(R.string.facultyTopic), menuEntries);
+                            _prepareNavigationMenu(mainActivity.getString(R.string.generalTopic), menuEntries);
+                        }
                     }
                 });
             }
@@ -169,14 +171,23 @@ public class NavigationMenuDataHandler {
             }
         }
 
-        Comparator comparator = new Comparator<ExpandedMenuModel>() {
+        Collections.sort(navigationMenuParentList, new Comparator<ExpandedMenuModel>() {
             @Override
             public int compare(ExpandedMenuModel model1, ExpandedMenuModel model2) {
                 return model1.getMenuName().toLowerCase().compareTo(model2.getMenuName().toLowerCase());
             }
-        };
-        Collections.sort(navigationMenuParentList, comparator);
-        Collections.sort(Collections.singletonList(navigationMenuChildList.values()), comparator);
+        });
+        System.out.println();
+        for (List<String> list : navigationMenuChildList.values()) {
+            Collections.sort(list, new Comparator<String>() {
+                @Override
+                public int compare(String string1, String string2) {
+                    return string1.toLowerCase().compareTo(string2.toLowerCase());
+                }
+            });
+        }
+        System.out.println();
+
     }
 
     public void initNavigationListListener() {
