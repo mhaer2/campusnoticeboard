@@ -33,17 +33,16 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public int getGroupCount() {
         int i = mListDataHeader.size();
-        Log.d("GROUPCOUNT", String.valueOf(i));
         return this.mListDataHeader.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
         int childCount = 0;
-        if (groupPosition != 2) {
-            childCount = this.mListDataChild.get(this.mListDataHeader.get(groupPosition))
-                    .size();
-        }
+
+        childCount = this.mListDataChild.get(this.mListDataHeader.get(groupPosition))
+                .size();
+
         return childCount;
     }
 
@@ -54,8 +53,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        Log.d("CHILD", mListDataChild.get(this.mListDataHeader.get(groupPosition))
-                .get(childPosition).toString());
         return this.mListDataChild.get(this.mListDataHeader.get(groupPosition))
                 .get(childPosition);
     }
@@ -78,19 +75,21 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         ExpandedMenuModel headerTitle = (ExpandedMenuModel) getGroup(groupPosition);
-        if (convertView == null) {
+        View view = convertView;
+        if (view == null) {
             LayoutInflater infalInflater = (LayoutInflater) this.mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = infalInflater.inflate(R.layout.navigation_expandablelist_menu, null);
+            view = infalInflater.inflate(R.layout.navigation_expandablelist_menu, null);
         }
-        TextView lblListHeader = (TextView) convertView
+        TextView lblListHeader = (TextView) view
                 .findViewById(R.id.expandablelistMenu);
         //ImageView headerIcon = (ImageView) convertView.findViewById(R.id.iconimage);
         lblListHeader.setTypeface(null, Typeface.BOLD);
         lblListHeader.setText(headerTitle.getMenuName());
         //headerIcon.setImageResource(headerTitle.getIconImg());
-        return convertView;
+        return view;
     }
+
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {

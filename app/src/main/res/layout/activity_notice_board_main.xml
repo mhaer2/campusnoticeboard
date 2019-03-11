@@ -39,11 +39,6 @@
         app:headerLayout="@layout/navigation_drawer_header"
 
         >
-        <!--app:menu="@menu/drawer_menue" >-->
-        <!--<LinearLayout-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:orientation="vertical">-->
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -70,8 +65,9 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:background="@color/colorGreyDarkest"
-                        android:textSize="18dp"
-                        android:text="Fakultäten"/>
+                        android:textSize="@dimen/navigationMenu_topicheader_textSize"
+                        android:text="@string/facultyTopic"/>
+
                     <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenufaculty"
                         android:layout_width="match_parent"
@@ -88,8 +84,8 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:background="@color/colorGreyDarkest"
-                        android:textSize="18dp"
-                        android:text="Allgemein"/>
+                        android:textSize="@dimen/navigationMenu_topicheader_textSize"
+                        android:text="@string/generalTopic"/>
 
                     <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenugeneral"
@@ -98,14 +94,6 @@
                         android:background="@color/white">
 
                     </de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView>
-                    <!--<ExpandableListView-->
-                        <!--android:id="@+id/navigationmenugeneral"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="wrap_content"-->
-                        <!--android:background="@color/white"-->
-                        <!--android:nestedScrollingEnabled="false"-->
-                        <!--android:scrollbars="none" >-->
-                    <!--</ExpandableListView>-->
                 </LinearLayout>
             </ScrollView>
         </LinearLayout>
