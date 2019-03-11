@@ -94,4 +94,10 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="facultyTopic">Fakultäten</string>
+    <string name="generalTopic">Allgemein</string>
+    <string name="flamelinkNavigationOrder">order</string>
+    <string name="flamelinkNavigationTitle">title</string>
+    <string name="flamelinkNavigationParentIndex">parentIndex</string>
+    <string name="flamelinkNavigationId">id</string>
 </resources>

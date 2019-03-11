@@ -88,7 +88,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 .findViewById(R.id.submenu);
         //ImageView headerIcon = (ImageView) convertView.findViewById(R.id.iconimage);
         lblListHeader.setTypeface(null, Typeface.BOLD);
-        lblListHeader.setText(headerTitle.getIconName());
+        lblListHeader.setText(headerTitle.getMenuName());
         //headerIcon.setImageResource(headerTitle.getIconImg());
         return convertView;
     }

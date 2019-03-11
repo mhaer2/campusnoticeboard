@@ -71,9 +71,7 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
                 newHeight += getDividerHeight() * listPosition;
             }
             if ((heightMode == MeasureSpec.AT_MOST) && (newHeight > heightSize)) {
-                if (newHeight > heightSize) {
                     newHeight = heightSize;
-                }
             }
         } else {
             newHeight = getMeasuredHeight();

@@ -1,7 +1,10 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -10,33 +13,43 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import de.haertel.hawapp.campusnoticeboard.R;
+import de.haertel.hawapp.campusnoticeboard.impl.navigationMenuData.MenuEntry;
+import de.haertel.hawapp.campusnoticeboard.impl.navigationMenuData.MenuEntryViewModel;
 
-public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+import static java.lang.Math.toIntExact;
 
+public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
     ScrollView scrollView;
-    ExpandableListAdapter mMenuAdapter;
-    ExpandableListAdapter mMenuAdapterGeneral;
-    ExpandableListView expandableList;
+    ExpandableListAdapter mFacultyMenuAdapter;
+    ExpandableListAdapter mGeneralMenuAdapter;
+    ExpandableListView facultyMenuExpandableList;
+    private DatabaseReference mDatabase;
+    ArrayList<HashMap<String, String>> arrayList;
 
-    ExpandableListView expandableListGeneral;
-    List<ExpandedMenuModel> listDataHeader;
-    HashMap<ExpandedMenuModel, List<String>> listDataChild;
+    ExpandableListView generalMenuExpandableList;
+    List<ExpandedMenuModel> navigationMenuParentList;
+    HashMap<ExpandedMenuModel, List<String>> navigationMenuChildList;
+
+    public MenuEntryViewModel menuEntryViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,122 +63,86 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         ActionBarDrawerToggle toggleButton = new ActionBarDrawerToggle(this, drawer,
                 toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggleButton);
+
         toggleButton.syncState();
 
         scrollView = (ScrollView) findViewById(R.id.scrollViewDrawer);
-        expandableList = (ExpandableListView) findViewById(R.id.navigationmenufaculty);
-        expandableListGeneral = (ExpandableListView) findViewById(R.id.navigationmenugeneral);
+        facultyMenuExpandableList = (ExpandableListView) findViewById(R.id.navigationmenufaculty);
+        generalMenuExpandableList = (ExpandableListView) findViewById(R.id.navigationmenugeneral);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/navigation/noticeBoards/en-US/items");
+
         //navigationView.setNavigationItemSelectedListener(this);
-        //_updateNavMenuDrawer();
+        menuEntryViewModel = ViewModelProviders.of(this).get(MenuEntryViewModel.class);
+
+
+
 
         if (navigationView != null) {
             setupDrawerContent(navigationView);
         }
 
-        prepareListData();
-        mMenuAdapterGeneral= new ExpandableListAdapter(this, listDataHeader, listDataChild, expandableListGeneral);
-        mMenuAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild, expandableList);
-
-        // setting list adapter
-        expandableList.setAdapter(mMenuAdapter);
-        expandableListGeneral.setAdapter(mMenuAdapterGeneral);
+        _initNavigationListListener();
 
 
-        expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
-            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                //Log.d("DEBUG", "submenu item clicked");
-                return false;
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                arrayList = (ArrayList<HashMap<String, String>>) dataSnapshot.getValue();
+                menuEntryViewModel.deleteAllMenuEntries();
+                _populateDatabase();
+                menuEntryViewModel.getAllMenuEntries().observe(NoticeBoardMainActivity.this, new Observer<List<MenuEntry>>() {
+                    @Override
+                    public void onChanged(@Nullable final List<MenuEntry> menuEntries) {
+
+                        _prepareNavigationMenu(getString(R.string.facultyTopic), menuEntries);
+                        _prepareNavigationMenu(getString(R.string.generalTopic), menuEntries);
+                    }
+                });
             }
-        });
-        expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+
             @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                //Log.d("DEBUG", "heading clicked");
-                return false;
-            }
-        });
-        expandableList.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-            @Override
-            public void onGroupExpand(int groupPosition) {
-                LinearLayout.LayoutParams param = (LinearLayout.LayoutParams) expandableList.getLayoutParams();
-                param.height = LinearLayout.LayoutParams.WRAP_CONTENT;//(expandableList. * expandableList.getHeight());
-                expandableList.setLayoutParams(param);
-                expandableList.requestLayout();
-                expandableList.refreshDrawableState();
-                scrollView.refreshDrawableState();
-            }
-        });
-        expandableList.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
-            @Override
-            public void onGroupCollapse(int groupPosition) {
-                LinearLayout.LayoutParams param = (LinearLayout.LayoutParams) expandableList.getLayoutParams();
-                param.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                expandableList.setLayoutParams(param);
-                expandableList.requestLayout();
-                expandableList.refreshDrawableState();
-                scrollView.refreshDrawableState();
-            }
-        });
-        expandableListGeneral.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                //Log.d("DEBUG", "submenu item clicked");
-                return false;
-            }
-        });
-        expandableListGeneral.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                //Log.d("DEBUG", "heading clicked");
-                return false;
-            }
-        });
-        expandableListGeneral.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-            @Override
-            public void onGroupExpand(int groupPosition) {
-                LinearLayout.LayoutParams param = (LinearLayout.LayoutParams) expandableListGeneral.getLayoutParams();
-                param.height = LinearLayout.LayoutParams.WRAP_CONTENT;//    (expandableListGeneral.getChildCount() * expandableListGeneral.getHeight());
-                expandableListGeneral.setLayoutParams(param);
-                expandableListGeneral.requestLayout();
-                expandableListGeneral.refreshDrawableState();
-                scrollView.refreshDrawableState();
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
 
-        expandableListGeneral.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
-            @Override
-            public void onGroupCollapse(int groupPosition) {
-                LinearLayout.LayoutParams param = (LinearLayout.LayoutParams) expandableListGeneral.getLayoutParams();
-                param.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                expandableListGeneral.setLayoutParams(param);
-                expandableListGeneral.requestLayout();
-                expandableListGeneral.refreshDrawableState();
-                scrollView.refreshDrawableState();
-            }
-        });
+
     }
 
-//    public void setListViewHeightBasedOnChildren(ExpandableListView listView) {
-//        ListAdapter listAdapter = listView.getAdapter();
-//        if (listAdapter == null) {
-//            // pre-condition
-//            return;
-//        }
-//
-//        int totalHeight = 0;
-//        for (int i = 0; i < listAdapter.getCount(); i++) {
-//            View listItem = listAdapter.getView(i, null, listView);
-//            listItem.measure(0, 0);
-//            totalHeight += listItem.getMeasuredHeight();
-//        }
-//
-//        ViewGroup.LayoutParams params = listView.getLayoutParams();
-//        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
-//        listView.setLayoutParams(params);
-//        listView.requestLayout();
-//    }
+    private void _populateDatabase() {
+        int id;
+        int menuParentId;
+        String title;
+
+        for (HashMap<String, String> hashMap: Objects.requireNonNull(arrayList)) {
+            id = -1;
+            menuParentId = -1;
+            title = null;
+            Long temp;
+            for (Map.Entry<String, String> entry : hashMap.entrySet() ) {
+                String key = String.valueOf(entry.getKey());
+                String value = String.valueOf(entry.getValue());
+                if (key.equals(getString(R.string.flamelinkNavigationId))){
+                    temp = (Long.parseLong(value));
+                    id = temp.intValue();
+                }
+                if (key.equals(getString(R.string.flamelinkNavigationParentIndex))){
+                    temp = (Long.parseLong(value));
+                    menuParentId = temp.intValue();
+                }
+                if (key.equals(getString(R.string.flamelinkNavigationTitle))){
+                    title = value;
+                }
+            }
+            if (id != -1 || menuParentId != -1 || title != null) {
+                MenuEntry newEntry = new MenuEntry(id, menuParentId, title);
+                menuEntryViewModel.insert(newEntry);
+            }
+        }
+    }
+
 
     private void setupDrawerContent(NavigationView navigationView) {
         //revision: this don't works, use setOnChildClickListener() and setOnGroupClickListener() above instead
@@ -179,59 +156,66 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     }
                 });
     }
+    private void _prepareNavigationMenu(String pTopic, List<MenuEntry> pMenuEntries){
+        navigationMenuParentList = new ArrayList<ExpandedMenuModel>();
+        navigationMenuChildList = new HashMap<ExpandedMenuModel, List<String>>();
+        ExpandedMenuModel expandedMenuModel;
+        List<String> childsToAdd;
 
-    private void prepareListData() {
-        listDataHeader = new ArrayList<ExpandedMenuModel>();
-        listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
+        List<MenuEntry> parentEntries = new ArrayList<MenuEntry>();
+        List<MenuEntry> childEntries = new ArrayList<MenuEntry>();
 
-        ExpandedMenuModel item1 = new ExpandedMenuModel();
-        item1.setIconName("heading1");
-        // Adding data header
-        listDataHeader.add(item1);
 
-        ExpandedMenuModel item2 = new ExpandedMenuModel();
-        item2.setIconName("heading2");
-        listDataHeader.add(item2);
+        int rootId = -1;
+        for ( MenuEntry entry : pMenuEntries) {
+            if (entry.getTitle().equals(pTopic)) {
+                rootId = entry.getId();
+            }
+        }
 
-        ExpandedMenuModel item3 = new ExpandedMenuModel();
-        item3.setIconName("heading3");
-        listDataHeader.add(item3);
+        for ( MenuEntry entry : pMenuEntries) {
+            // falls Entry ein Kindknoten des RootEntrys mit dem Topic pTopic ist
+            if (entry.getMenuParentId() == rootId && rootId != -1){
+                parentEntries.add(entry);
+                // füge alle Kinder des ParentEntries der Liste der Kinder hinzu
+                for ( MenuEntry childEntry : pMenuEntries) {
+                    if (childEntry.getMenuParentId() == entry.getId()){
+                        // falls ChildEntry noch nicht in Liste existiert, füge es hinzu
+                        if(!childEntries.contains(childEntry)){
+                            childEntries.add(childEntry);
+                        }
 
-        // Adding child data
-        List<String> heading1 = new ArrayList<String>();
-        heading1.add("Submenu of item 1");
+                    }
+                }
+            }
+        }
 
-        List<String> heading2 = new ArrayList<String>();
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
 
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
+        for (MenuEntry menuEntry: parentEntries) {
+            expandedMenuModel = new ExpandedMenuModel();
+            childsToAdd = new ArrayList<String>();
+            expandedMenuModel.setMenuName(menuEntry.getTitle());
+            navigationMenuParentList.add(expandedMenuModel);
 
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
-        heading2.add("Submenu of item 2");
-
-        listDataChild.put(listDataHeader.get(0), heading1);// Header, Child data
-        listDataChild.put(listDataHeader.get(1), heading2);
-
+            for (MenuEntry childEntry: childEntries) {
+                if (childEntry.getMenuParentId() == menuEntry.getId()){
+                    childsToAdd.add(childEntry.getTitle());
+                }
+            }
+            navigationMenuChildList.put(expandedMenuModel, childsToAdd);
+        }
+        if(pTopic.equals(getString(R.string.facultyTopic))){
+            mFacultyMenuAdapter = new ExpandableListAdapter(this, navigationMenuParentList, navigationMenuChildList, facultyMenuExpandableList);
+            facultyMenuExpandableList.setAdapter(mFacultyMenuAdapter);
+        } else{
+            if (pTopic.equals(getString(R.string.generalTopic))){
+                mGeneralMenuAdapter = new ExpandableListAdapter(this, navigationMenuParentList, navigationMenuChildList, generalMenuExpandableList);
+                generalMenuExpandableList.setAdapter(mGeneralMenuAdapter);
+            }
+        }
     }
 
-    private void _updateNavMenuDrawer() {
-        NavigationView navView = (NavigationView) findViewById(R.id.nav_view);
 
-        Menu menu = navView.getMenu();
-        Menu fakul = menu.addSubMenu("Fakul");
-        Menu inf = menu.addSubMenu("IF");
-        Menu bwl = fakul.addSubMenu("BWL");
-        inf.add("Informatik, B.Sc.");
-        inf.add("Informatik, M.Sc.");
-        inf.add("WIF, B.Sc.");
-
-        navView.invalidate();
-    }
 
     /**
      * Falls NavigationBar offen,
@@ -240,7 +224,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
      */
     @Override
     public void onBackPressed() {
-        if(drawer.isDrawerOpen(GravityCompat.START)){
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
@@ -273,4 +257,41 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         return false;
     }
+
+    private void _initNavigationListListener() {
+        facultyMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
+//                Log.d(msg, expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
+//
+//                _prepareFacultyListData2();
+
+                //Log.d("DEBUG", "submenu item clicked");
+                return false;
+            }
+        });
+        facultyMenuExpandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
+                //Log.d("DEBUG", "heading clicked");
+                return false;
+            }
+        });
+        generalMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
+                //Log.d("DEBUG", "submenu item clicked");
+                return false;
+            }
+        });
+        generalMenuExpandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
+                //Log.d("DEBUG", "heading clicked");
+                return false;
+            }
+        });
+    }
+
+
 }

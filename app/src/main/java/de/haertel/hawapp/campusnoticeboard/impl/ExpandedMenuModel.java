@@ -2,19 +2,12 @@ package de.haertel.hawapp.campusnoticeboard.impl;
 
 public class ExpandedMenuModel {
 
-    String iconName = "";
-    int iconImg = -1; // menu icon resource id
+    String menuName = "";
 
-    public String getIconName() {
-        return iconName;
+    public String getMenuName() {
+        return menuName;
     }
-    public void setIconName(String iconName) {
-        this.iconName = iconName;
+    public void setMenuName(String pMenuName) {
+        menuName = pMenuName;
     }
-//    public int getIconImg() {
-//        return iconImg;
-//    }
-//    public void setIconImg(int iconImg) {
-//        this.iconImg = iconImg;
-//    }
 }
