@@ -10,17 +10,20 @@ import android.widget.TextView;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
+import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 
 public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapter.AnnouncementHolder> {
 
     private List<Announcement> announcements = new ArrayList<>();
-    String pattern = "dd/MM/yyyy";
+    String pattern = "dd/MM/yyyy HH:mm";
     DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
 
     /**
@@ -56,7 +59,11 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
     }
 
     public void setAnnouncements(List<Announcement> pAnnouncements){
-        this.announcements = pAnnouncements;
+        List<Announcement> announcementList = pAnnouncements;
+        if (announcementList.size() > 1) {
+            Collections.sort(announcementList);
+        }
+        this.announcements = announcementList;
         notifyDataSetChanged();
     }
 

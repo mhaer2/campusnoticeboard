@@ -9,9 +9,30 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-import java.util.Date;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-@Database(entities = {Announcement.class}, version = 1, exportSchema = false)
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
+
+
+@Database(entities = {Announcement.class}, version = 2, exportSchema = false)
 @TypeConverters(DateTypeConverter.class)
 public abstract class AnnouncementDatabase extends RoomDatabase {
 
@@ -33,25 +54,93 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
-            new PopulateDbAsyncTask(instance).execute();
+
+            final ArrayList<Announcement> announcements = new ArrayList<>();
+            DatabaseReference mDatabase;
+            mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
+            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    HashMap<String,HashMap<String,String>> outerMap = (HashMap<String,HashMap<String,String>>) dataSnapshot.getValue();
+                    String pattern = "yyyy-MM-dd'T'HH:mm";
+                    DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+                    String author;
+                    String headline;
+                    String message;
+                    String noticeboard;
+                    Date date;
+                    for (HashMap<String, String> middleMap: Objects.requireNonNull(outerMap).values()) {
+                        author = null;
+                        headline = null;
+                        message = null;
+                        noticeboard = null;
+                        date = null;
+                        for (Map.Entry<String, String> entry : middleMap.entrySet()) {
+                            String key = String.valueOf(entry.getKey());
+                            String value = String.valueOf(entry.getValue());
+
+                            switch (key) {
+                                case "author":
+                                    author = value;
+                                    break;
+                                case "headline":
+                                    headline = value;
+                                    break;
+                                case "message":
+                                    message = value;
+                                    break;
+                                case "noticeboard":
+                                    noticeboard = value;
+                                case "date":
+                                    try {
+                                        date = dateFormat.parse(value);
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
+                            }
+                        }
+                        if (author != null || headline != null || message != null || noticeboard != null || date != null) {
+                            announcements.add(new Announcement(headline, author, message, date, noticeboard));
+                            //announcementDao.insert(new Announcement(headline, author, message, date, noticeboard));
+                        }
+                    }
+                    announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere", new Date(), "Leichtbau und Simulation, M.Sc."));
+                    announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere IF", new Date(), "Informatik, B.Sc."));
+
+                    new PopulateDbAsyncTask(instance).execute(announcements);
+
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+
         }
     };
 
-    private static class PopulateDbAsyncTask extends AsyncTask<Void, Void, Void> {
+    private static class PopulateDbAsyncTask extends AsyncTask<List<Announcement>, Void, Void> {
         private AnnouncementDao announcementDao;
 
         private PopulateDbAsyncTask(AnnouncementDatabase db) {
             announcementDao = db.announcementDao();
         }
 
+        @SafeVarargs
         @Override
-        protected Void doInBackground(Void... voids) {
-            announcementDao.insert(new Announcement("HeadlineTest", "Martin Härtel", "Lorem ipsum und so", new Date(), "Informatik, B. Sc"));
-            announcementDao.insert(new Announcement("HeadlineTest2", "Martin Härtel", "Lorem ipsum 2 und so", new Date(), "Informatik, B. Sc"));
-            announcementDao.insert(new Announcement("HeadlineTest3", "Martin Härtel", "Lorem ipsum 3 und so", new Date(), "Informatik, B. Sc"));
-
-            announcementDao.insert(new Announcement("HeadlineTest4", "Martin Härtel", "Lorem ipsum 4 und so", new Date(), "Leichtbau und Simulation"));
+        protected final Void doInBackground(List<Announcement>... pAnnouncements) {
+            for (Announcement announcement : pAnnouncements[0]) {
+                announcementDao.insert(announcement);
+            }
+            AnnouncementTopic.setTopic("Informatik, B.Sc.");
             return null;
         }
+
     }
+
 }

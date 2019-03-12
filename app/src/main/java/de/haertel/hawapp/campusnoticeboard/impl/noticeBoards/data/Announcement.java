@@ -7,7 +7,7 @@ import android.arch.persistence.room.TypeConverters;
 import java.util.Date;
 
 @Entity(tableName = "announcement_table")
-public class Announcement {
+public class Announcement implements Comparable<Announcement>{
 
     @PrimaryKey(autoGenerate = true)
     private int id;
@@ -57,5 +57,19 @@ public class Announcement {
 
     public String getNoticeBoard() {
         return noticeBoard;
+    }
+
+    @Override
+    public int compareTo(Announcement announcementToCompare) {
+        long time1 = this.date.getTime();
+        long time2 = announcementToCompare.getDate().getTime();
+
+        if (time1 > time2) {
+            return -1;
+        } else if (time1 < time2) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

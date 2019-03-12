@@ -7,6 +7,7 @@ import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
 
 public class AnnouncementTopic {
     private static String topic;
+    private static boolean isInitialised;
 
     private static PropertyChangeSupport propertyChangeSupport =
             new PropertyChangeSupport(AnnouncementTopic.class);
@@ -24,4 +25,6 @@ public class AnnouncementTopic {
         AnnouncementTopic.topic = topic;
         propertyChangeSupport.firePropertyChange("topic", oldTopic, AnnouncementTopic.topic);
     }
+
+
 }

@@ -109,4 +109,6 @@
     <string name="sixthDay">6T</string>
     <string name="seventhDay">7T</string>
     <string name="biggerseventhDay">>7T</string>
+    <string name="preferenceKeyFirstStart">isFirstStart</string>
+    <string name="preferenceName">MyPreferences</string>
 </resources>

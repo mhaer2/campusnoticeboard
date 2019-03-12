@@ -2,6 +2,8 @@ package de.haertel.hawapp.campusnoticeboard.impl;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +20,7 @@ import android.view.MenuItem;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Date;
 import java.util.List;
 
 import de.haertel.hawapp.campusnoticeboard.R;
@@ -31,6 +34,7 @@ import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
     private AnnouncementViewModel announcementViewModel;
+    private SharedPreferences sharedPreferences;
 
 
     @Override
@@ -71,8 +75,17 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                 });
             }
         });
-        AnnouncementTopic.setTopic("Informatik, B. Sc");
 
+        // Falls die Shared Preference noch nicht angelegt wurde
+        // (nur der Fall, wenn Datenbank davor noch nicht existent),
+        // soll die Datenbank initialisiert werden.
+        sharedPreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+        if (!sharedPreferences.contains(getString(R.string.preferenceKeyFirstStart))){
+            _performActionForDatabaseInit();
+        }else {
+            // Ansonsten Default-Topic einstellen.
+            AnnouncementTopic.setTopic("Informatik, B.Sc.");
+        }
 
 
 
@@ -83,6 +96,24 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         NavigationMenuDataHandler navigationMenuDataHandler = new NavigationMenuDataHandler(this);
         navigationMenuDataHandler.handleNavigationMenuData();
         navigationMenuDataHandler.initNavigationListListener();
+    }
+
+    /**
+     * Um die Room Datenbank mittel Callback zu initialisieren und somit mit Daten zu befüllen,
+     * muss eine Datenbank Aktion durchgeführt werden,
+     * da ansonsten die onCreate Methode des Callbacks nicht aufgerufen wird.
+     * Daher wird ein Insert mit nachfolgendem Delete eines DummyEntrys durchgeführt.
+     */
+    private void _performActionForDatabaseInit() {
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(getString(R.string.preferenceKeyFirstStart), true);
+        // Save the changes in SharedPreferences
+        editor.apply();
+
+        Announcement initEntry = new Announcement("none", "none", "none", new Date(), "none");
+        announcementViewModel.insert(initEntry);
+        announcementViewModel.delete(initEntry);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {

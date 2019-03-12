@@ -5,7 +5,7 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-@Database(entities = {MenuEntry.class}, version = 2, exportSchema = false)
+@Database(entities = {MenuEntry.class}, version = 3, exportSchema = false)
 public abstract class MenuEntryDatabase extends RoomDatabase {
 
     private static MenuEntryDatabase instance;
