@@ -67,10 +67,10 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         if (dayDifference > 7){
             return ">7T";
         }
-        String dayCount = "-1";
+        String dayCount;
         switch (dayDifference) {
             case 0:
-                dayCount = "0T";
+                dayCount = "NEW";
                 break;
             case 1:
                 dayCount = "1T";

@@ -25,11 +25,10 @@
                 android:id="@+id/preview_day_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_margin="@dimen/announcement_preview_dayCount_margin"
                 android:background="@drawable/circle_background"
                 android:gravity="center"
-                android:text="XYT"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 android:textSize="18dp" />
 
