@@ -33,6 +33,7 @@ import java.util.Objects;
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.ExpandableListAdapter;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.ExpandedMenuModel;
+import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 
 public class NavigationMenuDataHandler {
     private final String MENU_ENTRY_STORE_KEY = "menuEntryPreference";
@@ -182,7 +183,7 @@ public class NavigationMenuDataHandler {
         }
 
         for (MenuEntry entry : pMenuEntries) {
-            // falls Entry ein Kindknoten des RootEntrys mit dem Topic pTopic ist
+            // falls Entry ein Kindknoten des RootEntrys mit dem AnnouncementTopic pTopic ist
             if (entry.getMenuParentId() == rootId && rootId != -1) {
                 parentEntries.add(entry);
                 // füge alle Kinder des ParentEntries der Liste der Kinder hinzu
@@ -243,11 +244,8 @@ public class NavigationMenuDataHandler {
         facultyMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-//                Log.d(msg, expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
-//
-//                _prepareFacultyListData2();
+                AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
 
-                //Log.d("DEBUG", "submenu item clicked");
                 return false;
             }
         });
@@ -261,7 +259,7 @@ public class NavigationMenuDataHandler {
         generalMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-                //Log.d("DEBUG", "submenu item clicked");
+                AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
                 return false;
             }
         });
