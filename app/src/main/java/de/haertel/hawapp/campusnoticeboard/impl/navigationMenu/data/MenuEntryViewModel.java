@@ -33,13 +33,4 @@ public class MenuEntryViewModel extends AndroidViewModel {
     public LiveData<List<MenuEntry>> getAllMenuEntries(){
         return allMenuEntries;
     }
-//    public LiveData<List<MenuEntry>> getAllRootMenuEntries(){
-//        return repository.getAllRootMenuEntries();
-//    }
-//    public LiveData<List<MenuEntry>> getAllNonRootParentEntries(String pTopic){
-//        return repository.getAllNonRootParentEntries(pTopic);
-//    }
-//    public LiveData<List<MenuEntry>> getAllChildMenuEntries(){
-//        return repository.getAllChildMenuEntries();
-//    }
 }

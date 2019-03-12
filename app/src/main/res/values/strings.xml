@@ -100,4 +100,13 @@
     <string name="flamelinkNavigationTitle">title</string>
     <string name="flamelinkNavigationParentIndex">parentIndex</string>
     <string name="flamelinkNavigationId">id</string>
+    <string name="zeroDay">0T</string>
+    <string name="firstDay">1T</string>
+    <string name="secondDay">2T</string>
+    <string name="thirdDay">3T</string>
+    <string name="fourthDay">4T</string>
+    <string name="fifthDay">5T</string>
+    <string name="sixthDay">6T</string>
+    <string name="seventhDay">7T</string>
+    <string name="biggerseventhDay">>7T</string>
 </resources>

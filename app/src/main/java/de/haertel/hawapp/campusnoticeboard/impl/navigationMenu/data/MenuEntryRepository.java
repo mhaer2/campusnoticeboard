@@ -35,20 +35,8 @@ public class MenuEntryRepository {
         new DeleteAllMenuEntryAsyncTask(menuEntryDao).execute();
     }
     public LiveData<List<MenuEntry>> getAllMenuEntries(){
-        //new GetAllMenuEntriesAsyncTask(menuEntryDao).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        //return menuEntryDao.getAllMenuEntries();
         return allMenuEntries;
     }
-//    public LiveData<List<MenuEntry>> getAllRootMenuEntries(){
-//        return menuEntryDao.getAllRootMenuEntries();
-//    }
-//    public LiveData<List<MenuEntry>> getAllNonRootParentEntries(String pTopic){
-//        return menuEntryDao.getAllNonRootParentEntries(pTopic);
-//    }
-//    public LiveData<List<MenuEntry>> getAllChildMenuEntries(){
-//        return menuEntryDao.getAllChildMenuEntries();
-//    }
-
 
     private static class InsertMenuEntryAsyncTask extends AsyncTask<MenuEntry, Void, Void> {
         private MenuEntryDao menuEntryDao;
@@ -98,53 +86,6 @@ public class MenuEntryRepository {
             return null;
         }
     }
-//    private static class GetAllMenuEntriesAsyncTask extends AsyncTask<Void, Void, List<MenuEntry>> {
-//        private MenuEntryDao menuEntryDao;
-//
-//        private GetAllMenuEntriesAsyncTask(MenuEntryDao pMenuEntryDao){
-//            menuEntryDao = pMenuEntryDao;
-//        }
-//        @Override
-//        protected List<MenuEntry> doInBackground(Void... voids) {
-//
-//            return menuEntryDao.getAllMenuEntries();
-//        }
-//    }
-//    private static class GetAllRootMenuEntriesAsyncTask extends AsyncTask<Void, Void, List<MenuEntry>> {
-//        private MenuEntryDao menuEntryDao;
-//
-//        private GetAllRootMenuEntriesAsyncTask(MenuEntryDao pMenuEntryDao){
-//            menuEntryDao = pMenuEntryDao;
-//        }
-//        @Override
-//        protected List<MenuEntry> doInBackground(Void... voids) {
-//
-//            return menuEntryDao.getAllRootMenuEntries();
-//        }
-//    }
-//    private static class GetAllNonRootMenuEntriesAsyncTask extends AsyncTask<String, Void, List<MenuEntry>> {
-//        private MenuEntryDao menuEntryDao;
-//
-//        private GetAllNonRootMenuEntriesAsyncTask(MenuEntryDao pMenuEntryDao){
-//            menuEntryDao = pMenuEntryDao;
-//        }
-//        @Override
-//        protected List<MenuEntry> doInBackground(String... strings) {
-//
-//            return menuEntryDao.getAllNonRootParentEntries(strings[0]);
-//        }
-//    }
-//    private static class GetAllChildMenuEntriesAsyncTask extends AsyncTask<Void, Void, List<MenuEntry>> {
-//        private MenuEntryDao menuEntryDao;
-//
-//        private GetAllChildMenuEntriesAsyncTask(MenuEntryDao pMenuEntryDao){
-//            menuEntryDao = pMenuEntryDao;
-//        }
-//        @Override
-//        protected List<MenuEntry> doInBackground(Void... voids) {
-//
-//            return menuEntryDao.getAllChildMenuEntries();
-//        }
-//    }
+
 
 }
