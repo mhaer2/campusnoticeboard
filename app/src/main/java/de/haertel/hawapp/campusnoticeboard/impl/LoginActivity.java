@@ -16,6 +16,7 @@ import android.widget.EditText;
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
+import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
 
 /**
  * A login screen that offers login via email/password.
@@ -49,9 +50,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
 
-        mypreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+        //mypreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
         // Bei erstem Start der App werden die SharedPreferences initialisiert, die die User speichern.
-        if (!mypreferences.contains(getString(R.string.preferenceKeyFirstStart))) {
+        if (FirstStart.isFirstStart() == true) {
 //            SharedPreferences sharedPref = getSharedPreferences(CURRENT_USER_PREF, MODE_PRIVATE);
 //            SharedPreferences.Editor editor;
 //            editor = sharedPref.edit();

@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -41,10 +42,12 @@ import java.util.Map;
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.NavigationMenuDataHandler;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
+import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementDao;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementViewModel;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.presentation.AnnouncementAdapter;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
+import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
 
 
 public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -98,6 +101,14 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         AnnouncementTopic.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
+                if (evt.getOldValue().equals("none")){
+                    FirstStart.setFirstStart(false);
+                    sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean(getString(R.string.preferenceKeyFirstStart), true);
+                    // Save the changes in SharedPreferences
+                    editor.apply();
+                }
                 announcementViewModel.getAllAnnouncementsForTopic(AnnouncementTopic.getTopic()).observe(NoticeBoardMainActivity.this, new Observer<List<Announcement>>() {
                     @Override
                     public void onChanged(@Nullable List<Announcement> pAnnouncements) {
@@ -108,19 +119,21 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     }
                 });
             }
+
         });
 
 
         // Falls die Shared Preference noch nicht angelegt wurde
         // (nur der Fall, wenn Datenbank davor noch nicht existent),
         // soll die Datenbank initialisiert werden.
-        sharedPreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
-        if (!sharedPreferences.contains(getString(R.string.preferenceKeyFirstStart))) {
+
+       // sharedPreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+        if (FirstStart.isFirstStart()){ //!sharedPreferences.contains(getString(R.string.preferenceKeyFirstStart))) {
             _performActionForDatabaseInit();
         } else {
             // Ansonsten Default-Topic einstellen.
             AnnouncementTopic.setTopic(announcementBoard);
-            _addNewDatabaseEntryListener();
+            //_addNewDatabaseEntryListener();
         }
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -143,53 +156,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
-    private void _addNewDatabaseEntryListener() {
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance()
-                .getReference("flamelink/environments/production/content/announcements/en-US");
-        mDatabase.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                String pattern = "yyyy-MM-dd'T'HH:mm";
-                DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
-                Map<String, String> map = (Map) dataSnapshot.getValue();
-
-                String authorOfNewInsert = map.get("author");
-                String headlineOfNewInsert = map.get("headline");
-                String messageOfNewInsert = map.get("message");
-                Date dateOfNewInsert = null;
-                try {
-                    dateOfNewInsert = dateFormat.parse(map.get("date"));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                String noticeboardOfNewInsert = map.get("noticeboard");
-
-                Announcement newInsert = new Announcement
-                        (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
-                announcementViewModel.insert(newInsert);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     /**
      * Um die Room Datenbank mittel Callback zu initialisieren und somit mit Daten zu befüllen,
@@ -198,11 +164,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
      * Daher wird ein Insert mit nachfolgendem Delete eines DummyEntrys durchgeführt.
      */
     private void _performActionForDatabaseInit() {
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(getString(R.string.preferenceKeyFirstStart), true);
-        // Save the changes in SharedPreferences
-        editor.apply();
+
 
         Announcement initEntry = new Announcement("none", "none", "none", new Date(), "none");
         announcementViewModel.insert(initEntry);
@@ -265,4 +227,67 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         return false;
     }
 
+//    private void _addNewDatabaseEntryListener() {
+//        DatabaseReference mDatabase = FirebaseDatabase.getInstance()
+//                .getReference("flamelink/environments/production/content/announcements/en-US");
+//        mDatabase.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//                String pattern = "yyyy-MM-dd'T'HH:mm";
+//                DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+//                Map<String, String> map = (Map) dataSnapshot.getValue();
+//
+//                String authorOfNewInsert = map.get("author");
+//                String headlineOfNewInsert = map.get("headline");
+//                String messageOfNewInsert = map.get("message");
+//                Date dateOfNewInsert = null;
+//                try {
+//                    dateOfNewInsert = dateFormat.parse(map.get("date"));
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                }
+//                String noticeboardOfNewInsert = map.get("noticeboard");
+//
+//                Announcement newInsert = new Announcement
+//                        (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
+//                announcementViewModel.insert(newInsert);
+//                //new InsertNewEntryAsyncTask(announcementViewModel).execute(newInsert);
+//            }
+//
+//            @Override
+//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//
+//            }
+//
+//            @Override
+//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
+
+
+
+//    private static class InsertNewEntryAsyncTask extends AsyncTask<Announcement, Void, Void> {
+//        private AnnouncementViewModel announcementViewModel;
+//
+//        private InsertNewEntryAsyncTask(AnnouncementViewModel pAnnouncementViewModel) {
+//            announcementViewModel = pAnnouncementViewModel;
+//        }
+//        @Override
+//        protected Void doInBackground(Announcement... pAnnouncements) {
+//            announcementViewModel.insert(pAnnouncements[0]);
+//            return null;
+//        }
+//    }
 }

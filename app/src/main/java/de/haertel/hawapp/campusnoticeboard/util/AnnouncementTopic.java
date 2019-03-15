@@ -14,6 +14,10 @@ public class AnnouncementTopic {
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
+    public static void removePropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
     public static synchronized String getTopic() {
         return topic;
     }

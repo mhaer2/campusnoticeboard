@@ -5,6 +5,7 @@ import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 
 import java.util.Date;
+import java.util.Objects;
 
 @Entity(tableName = "announcement_table")
 public class Announcement implements Comparable<Announcement>{
@@ -71,5 +72,22 @@ public class Announcement implements Comparable<Announcement>{
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Announcement that = (Announcement) o;
+        return Objects.equals(headline, that.headline) &&
+                Objects.equals(author, that.author) &&
+                Objects.equals(message, that.message) &&
+                Objects.equals(date, that.date) &&
+                Objects.equals(noticeBoard, that.noticeBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(headline, author, message, date, noticeBoard);
     }
 }

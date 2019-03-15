@@ -59,6 +59,7 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
     }
 
     public void setAnnouncements(List<Announcement> pAnnouncements){
+
         List<Announcement> announcementList = pAnnouncements;
         if (announcementList.size() > 1) {
             Collections.sort(announcementList);

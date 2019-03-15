@@ -6,10 +6,11 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -19,35 +20,29 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import de.haertel.hawapp.campusnoticeboard.impl.LoginActivity;
-import de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
-import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
-
-import static android.content.Context.MODE_PRIVATE;
+import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
 
 
 @Database(entities = {Announcement.class}, version = 2, exportSchema = false)
 @TypeConverters(DateTypeConverter.class)
 public abstract class AnnouncementDatabase extends RoomDatabase {
-
+    private static boolean isAnnouncementListPopulated = false;
+    private static boolean isDatabasePopulated = false;
     private static AnnouncementDatabase instance;
+
     public abstract AnnouncementDao announcementDao();
 
 
-    public static synchronized AnnouncementDatabase getInstance(Context context){
-        if (instance == null){
+    public static synchronized AnnouncementDatabase getInstance(Context context) {
+        if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
                     AnnouncementDatabase.class, "announcement_database")
                     .fallbackToDestructiveMigration()
@@ -62,14 +57,14 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
 
-            final ArrayList<Announcement> announcements = new ArrayList<>();
+            final HashSet<Announcement> announcements = new HashSet<>();
             DatabaseReference mDatabase;
             mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                @SuppressWarnings("unchecked")
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    HashMap<String,HashMap<String,String>> outerMap = (HashMap<String,HashMap<String,String>>) dataSnapshot.getValue();
+                    // HashSet anstelle von ArrayList, da die containsMethode bei HashSet deutlich bessere Performance hat
+                    HashMap<String, HashMap<String, String>> outerMap = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
                     String pattern = "yyyy-MM-dd'T'HH:mm";
                     DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
                     String author;
@@ -77,7 +72,7 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                     String message;
                     String noticeboard;
                     Date date;
-                    for (HashMap<String, String> middleMap: Objects.requireNonNull(outerMap).values()) {
+                    for (HashMap<String, String> middleMap : Objects.requireNonNull(outerMap).values()) {
                         author = null;
                         headline = null;
                         message = null;
@@ -116,8 +111,66 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                     announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere", new Date(), "Leichtbau und Simulation, M.Sc."));
                     announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere IF", new Date(), "Informatik, B.Sc."));
 
-                    new PopulateDbAsyncTask(instance).execute(announcements);
+                    AnnouncementDatabase.isAnnouncementListPopulated = true;
+                }
 
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+
+            mDatabase.addChildEventListener(new ChildEventListener() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+                    String pattern = "yyyy-MM-dd'T'HH:mm";
+                    DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+                    Map<String, String> map = (Map) dataSnapshot.getValue();
+
+                    String authorOfNewInsert = map.get("author");
+                    String headlineOfNewInsert = map.get("headline");
+                    String messageOfNewInsert = map.get("message");
+                    Date dateOfNewInsert = null;
+                    try {
+                        dateOfNewInsert = dateFormat.parse(map.get("date"));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    String noticeboardOfNewInsert = map.get("noticeboard");
+
+                    Announcement newInsert = new Announcement
+                            (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
+                    //announcementViewModel.insert(newInsert);
+                    if (FirstStart.isFirstStart()) {
+                        if (AnnouncementDatabase.isAnnouncementListPopulated && !AnnouncementDatabase.isDatabasePopulated) {
+                            new PopulateDbAsyncTask(instance).execute(announcements);
+                            AnnouncementDatabase.isDatabasePopulated = true;
+                        }
+
+                    } else {
+                        if (!announcements.contains(newInsert)) {
+                            new InsertNewEntryAsyncTask(instance).execute(newInsert);
+                        }
+
+                    }
+
+
+                }
+
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
                 }
 
@@ -131,7 +184,21 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         }
     };
 
-    private static class PopulateDbAsyncTask extends AsyncTask<List<Announcement>, Void, Void> {
+    private static class InsertNewEntryAsyncTask extends AsyncTask<Announcement, Void, Void> {
+        private AnnouncementDao announcementDao;
+
+        private InsertNewEntryAsyncTask(AnnouncementDatabase db) {
+            announcementDao = db.announcementDao();
+        }
+
+        @Override
+        protected Void doInBackground(Announcement... pAnnouncements) {
+            announcementDao.insert(pAnnouncements[0]);
+            return null;
+        }
+    }
+
+    private static class PopulateDbAsyncTask extends AsyncTask<HashSet<Announcement>, Void, Void> {
         private AnnouncementDao announcementDao;
 
         private PopulateDbAsyncTask(AnnouncementDatabase db) {
@@ -140,15 +207,17 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
 
         @SafeVarargs
         @Override
-        protected final Void doInBackground(List<Announcement>... pAnnouncements) {
+        protected final Void doInBackground(HashSet<Announcement>... pAnnouncements) {
             for (Announcement announcement : pAnnouncements[0]) {
                 announcementDao.insert(announcement);
             }
-            LastInsert.setLastInsert(new Date());
             AnnouncementTopic.initTopic(AnnouncementTopic.getTopic());
+
             return null;
         }
 
+
     }
+
 
 }
