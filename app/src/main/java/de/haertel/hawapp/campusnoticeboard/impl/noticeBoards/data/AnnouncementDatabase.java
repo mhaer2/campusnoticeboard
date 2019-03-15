@@ -6,6 +6,7 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
@@ -29,7 +30,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import de.haertel.hawapp.campusnoticeboard.impl.LoginActivity;
+import de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
+import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
+
+import static android.content.Context.MODE_PRIVATE;
 
 
 @Database(entities = {Announcement.class}, version = 2, exportSchema = false)
@@ -38,6 +44,7 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
 
     private static AnnouncementDatabase instance;
     public abstract AnnouncementDao announcementDao();
+
 
     public static synchronized AnnouncementDatabase getInstance(Context context){
         if (instance == null){
@@ -137,7 +144,8 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
             for (Announcement announcement : pAnnouncements[0]) {
                 announcementDao.insert(announcement);
             }
-            AnnouncementTopic.setTopic("Informatik, B.Sc.");
+            LastInsert.setLastInsert(new Date());
+            AnnouncementTopic.initTopic(AnnouncementTopic.getTopic());
             return null;
         }
 
