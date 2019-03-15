@@ -4,7 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 public class FirstStart {
-    private static boolean firstStart = true;
+    private static boolean firstStart = false;
 
     private static PropertyChangeSupport propertyChangeSupport =
             new PropertyChangeSupport(FirstStart.class);

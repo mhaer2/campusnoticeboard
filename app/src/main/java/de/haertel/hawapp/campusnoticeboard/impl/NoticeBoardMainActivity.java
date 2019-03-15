@@ -101,14 +101,17 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         AnnouncementTopic.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if (evt.getOldValue().equals("none")){
-                    FirstStart.setFirstStart(false);
-                    sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean(getString(R.string.preferenceKeyFirstStart), true);
-                    // Save the changes in SharedPreferences
-                    editor.apply();
+                if (FirstStart.isFirstStart()){
+                    if (evt.getOldValue().equals("none")){
+                        FirstStart.setFirstStart(false);
+                        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean(getString(R.string.preferenceKeyFirstStart), false);
+                        // Save the changes in SharedPreferences
+                        editor.apply();
+                    }
                 }
+
                 announcementViewModel.getAllAnnouncementsForTopic(AnnouncementTopic.getTopic()).observe(NoticeBoardMainActivity.this, new Observer<List<Announcement>>() {
                     @Override
                     public void onChanged(@Nullable List<Announcement> pAnnouncements) {

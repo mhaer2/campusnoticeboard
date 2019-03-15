@@ -48,11 +48,14 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        SharedPreferences myPref = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+        if (!myPref.contains(getString(R.string.preferenceKeyFirstStart))) {
+            FirstStart.setFirstStart(true);
+        }
 
         //mypreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
         // Bei erstem Start der App werden die SharedPreferences initialisiert, die die User speichern.
-        if (FirstStart.isFirstStart() == true) {
+        if (FirstStart.isFirstStart()) {
 //            SharedPreferences sharedPref = getSharedPreferences(CURRENT_USER_PREF, MODE_PRIVATE);
 //            SharedPreferences.Editor editor;
 //            editor = sharedPref.edit();
@@ -174,8 +177,7 @@ public class LoginActivity extends AppCompatActivity {
             String announcementBoard;
             if (success) {
                 CurrentUser.setUsername(mUsername);
-                SharedPreferences myPref = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
-                if (!myPref.contains(getString(R.string.preferenceKeyFirstStart))) {
+                if (FirstStart.isFirstStart()) {
                     SharedPreferences userPref = getSharedPreferences(mUsername + "Pref", MODE_PRIVATE);
                     announcementBoard = userPref.getString("AnnouncementBoard", "none");
                     AnnouncementTopic.setTopic(announcementBoard);

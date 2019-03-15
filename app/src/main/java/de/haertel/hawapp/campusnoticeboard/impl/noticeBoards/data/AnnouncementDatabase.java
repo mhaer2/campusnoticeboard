@@ -58,8 +58,7 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
             super.onCreate(db);
 
             final HashSet<Announcement> announcements = new HashSet<>();
-            DatabaseReference mDatabase;
-            mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
+            final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -108,12 +107,67 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                             //announcementDao.insert(new Announcement(headline, author, message, date, noticeboard));
                         }
                     }
-                    announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere", new Date(), "Leichtbau und Simulation, M.Sc."));
+                    Announcement leichtbauAnnouncement = new Announcement("populateTest", "Martin Härtel", "populiere", new Date(), "Leichtbau und Simulation, M.Sc.");
+                    announcements.add(leichtbauAnnouncement);
                     announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere IF", new Date(), "Informatik, B.Sc."));
 
                     AnnouncementDatabase.isAnnouncementListPopulated = true;
-                }
 
+
+                    mDatabase.addChildEventListener(new ChildEventListener() {
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+
+                            if (FirstStart.isFirstStart()) {
+                                if (AnnouncementDatabase.isAnnouncementListPopulated && !AnnouncementDatabase.isDatabasePopulated) {
+                                    new PopulateDbAsyncTask(instance).execute(announcements);
+                                    AnnouncementDatabase.isDatabasePopulated = true;
+                                }
+                            } else {
+                                String pattern = "yyyy-MM-dd'T'HH:mm";
+                                DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+                                Map<String, String> map = (Map) dataSnapshot.getValue();
+
+                                String authorOfNewInsert = map.get("author");
+                                String headlineOfNewInsert = map.get("headline");
+                                String messageOfNewInsert = map.get("message");
+                                Date dateOfNewInsert = null;
+                                try {
+                                    dateOfNewInsert = dateFormat.parse(map.get("date"));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                String noticeboardOfNewInsert = map.get("noticeboard");
+
+                                Announcement newInsert = new Announcement
+                                        (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
+                                if (!announcements.contains(newInsert)) {
+                                    new InsertNewEntryAsyncTask(instance).execute(newInsert);
+                                }
+                            }
+                        }
+                        @Override
+                        public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                }
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -121,68 +175,14 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
             });
 
 
-            mDatabase.addChildEventListener(new ChildEventListener() {
-                @Override
-                @SuppressWarnings("unchecked")
-                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
-                    String pattern = "yyyy-MM-dd'T'HH:mm";
-                    DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
-                    Map<String, String> map = (Map) dataSnapshot.getValue();
 
-                    String authorOfNewInsert = map.get("author");
-                    String headlineOfNewInsert = map.get("headline");
-                    String messageOfNewInsert = map.get("message");
-                    Date dateOfNewInsert = null;
-                    try {
-                        dateOfNewInsert = dateFormat.parse(map.get("date"));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    String noticeboardOfNewInsert = map.get("noticeboard");
-
-                    Announcement newInsert = new Announcement
-                            (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
-                    //announcementViewModel.insert(newInsert);
-                    if (FirstStart.isFirstStart()) {
-                        if (AnnouncementDatabase.isAnnouncementListPopulated && !AnnouncementDatabase.isDatabasePopulated) {
-                            new PopulateDbAsyncTask(instance).execute(announcements);
-                            AnnouncementDatabase.isDatabasePopulated = true;
-                        }
-
-                    } else {
-                        if (!announcements.contains(newInsert)) {
-                            new InsertNewEntryAsyncTask(instance).execute(newInsert);
-                        }
-
-                    }
-
-
-                }
-
-                @Override
-                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                }
-
-                @Override
-                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-                }
-
-                @Override
-                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
 
 
         }
     };
+
+
+
 
     private static class InsertNewEntryAsyncTask extends AsyncTask<Announcement, Void, Void> {
         private AnnouncementDao announcementDao;
@@ -217,6 +217,19 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         }
 
 
+    }
+    private static class DeleteAnnouncementAsyncTask extends AsyncTask<Announcement, Void, Void> {
+        private AnnouncementDao announcementDao;
+
+        private DeleteAnnouncementAsyncTask(AnnouncementDao pAnnouncementDao) {
+            this.announcementDao = pAnnouncementDao;
+        }
+
+        @Override
+        protected Void doInBackground(Announcement... pAnnouncements) {
+            announcementDao.delete(pAnnouncements[0]);
+            return null;
+        }
     }
 
 
