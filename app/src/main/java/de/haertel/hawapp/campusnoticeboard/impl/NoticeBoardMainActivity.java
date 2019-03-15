@@ -2,7 +2,6 @@ package de.haertel.hawapp.campusnoticeboard.impl;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,8 +27,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -38,8 +35,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,8 +43,6 @@ import java.util.Objects;
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.NavigationMenuDataHandler;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
-import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementDao;
-import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementDatabase;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementViewModel;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.presentation.AnnouncementAdapter;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
@@ -103,7 +96,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
         RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        //recyclerView.setHasFixedSize(true);
         final AnnouncementAdapter announcementAdapter = new AnnouncementAdapter();
         recyclerView.setAdapter(announcementAdapter);
 
@@ -147,8 +139,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         // (nur der Fall, wenn Datenbank davor noch nicht existent),
         // soll die Datenbank initialisiert werden.
 
-        // sharedPreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
-        if (FirstStart.isFirstStart()) { //!sharedPreferences.contains(getString(R.string.preferenceKeyFirstStart))) {
+        if (FirstStart.isFirstStart()) {
             _performActionForDatabaseInit();
         } else {
             // Ansonsten Default-Topic einstellen.
@@ -249,62 +240,9 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     private void _addNewDatabaseEntryListener() {
 
-//
-//        ChildEventListener initChildEventListener = FirstStart.getChildEventListener();
-//        if (initChildEventListener != null) {
-//            mDatabase.removeEventListener(initChildEventListener);
-//        }
-        if (childEventListener != null){
+        if (childEventListener != null) {
             mDatabase.removeEventListener(childEventListener);
         }
-//        final HashSet<Announcement> announcements = new HashSet<Announcement>();
-//        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                // HashSet anstelle von ArrayList, da die containsMethode bei HashSet deutlich bessere Performance hat
-//                HashMap<String, HashMap<String, String>> outerMap = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
-//                String pattern = "yyyy-MM-dd'T'HH:mm";
-//                DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
-//                String author;
-//                String headline;
-//                String message;
-//                String noticeboard;
-//                Date date;
-//                for (HashMap<String, String> middleMap : Objects.requireNonNull(outerMap).values()) {
-//                    author = null;
-//                    headline = null;
-//                    message = null;
-//                    noticeboard = null;
-//                    date = null;
-//                    for (Map.Entry<String, String> entry : middleMap.entrySet()) {
-//                        String key = String.valueOf(entry.getKey());
-//                        String value = String.valueOf(entry.getValue());
-//                        switch (key) {
-//                            case "author":
-//                                author = value;
-//                                break;
-//                            case "headline":
-//                                headline = value;
-//                                break;
-//                            case "message":
-//                                message = value;
-//                                break;
-//                            case "noticeboard":
-//                                noticeboard = value;
-//                            case "date":
-//                                try {
-//                                    date = dateFormat.parse(value);
-//                                } catch (ParseException e) {
-//                                    e.printStackTrace();
-//                                }
-//                                break;
-//                        }
-//                    }
-//                    if (author != null || headline != null || message != null || noticeboard != null || date != null) {
-//                        announcements.add(new Announcement(headline, author, message, date, noticeboard));
-//                    }
-//                }
-//
 
         childEventListener = mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
@@ -328,7 +266,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
                 Date lastInsert = cal.getTime();
 
-                if (Objects.requireNonNull(dateOfNewInsert).after(lastInsert)){
+                if (Objects.requireNonNull(dateOfNewInsert).after(lastInsert)) {
                     String authorOfNewInsert = map.get("author");
                     String headlineOfNewInsert = map.get("headline");
                     String messageOfNewInsert = map.get("message");
@@ -342,7 +280,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     SharedPreferences.Editor editor = shared.edit();
                     editor.remove(getString(R.string.lastInsert));
                     editor.putLong(getString(R.string.lastInsert), new Date().getTime()).commit();
-                    LastInsert.setLastInsert( new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
+                    LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
                 }
             }
 
