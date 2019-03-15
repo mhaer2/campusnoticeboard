@@ -1,10 +1,13 @@
 package de.haertel.hawapp.campusnoticeboard.util;
 
+import com.google.firebase.database.ChildEventListener;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 public class FirstStart {
     private static boolean firstStart = false;
+
 
     private static PropertyChangeSupport propertyChangeSupport =
             new PropertyChangeSupport(FirstStart.class);

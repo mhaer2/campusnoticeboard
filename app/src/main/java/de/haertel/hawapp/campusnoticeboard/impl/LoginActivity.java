@@ -13,10 +13,17 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
 import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
+import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
 /**
  * A login screen that offers login via email/password.
@@ -53,17 +60,15 @@ public class LoginActivity extends AppCompatActivity {
             FirstStart.setFirstStart(true);
         }
 
-        //mypreferences = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
         // Bei erstem Start der App werden die SharedPreferences initialisiert, die die User speichern.
         if (FirstStart.isFirstStart()) {
-//            SharedPreferences sharedPref = getSharedPreferences(CURRENT_USER_PREF, MODE_PRIVATE);
-//            SharedPreferences.Editor editor;
-//            editor = sharedPref.edit();
-//            editor.putString(CURRENT_USER, "none");
-//            editor.commit();
             _createSharedPref(MARTIN);
             _createSharedPref(KHELIL);
             _createSharedPref(JUSTUS);
+        } else {
+            Long millis = myPref.getLong(getString(R.string.lastInsert), new Date().getTime());
+            Date date = new Date(millis);
+            LastInsert.setLastInsert(date);
         }
 
 
@@ -86,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
     private void _createSharedPref(String pUsername) {
 
         String board = "IoT";
-        switch (pUsername){
+        switch (pUsername) {
             case MARTIN:
                 board = "Informatik, M.Sc.";
                 break;
@@ -99,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         SharedPreferences sharedPreferences;
         SharedPreferences.Editor editor;
-        sharedPreferences = getSharedPreferences(pUsername + "Pref" , Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(pUsername + "Pref", Context.MODE_PRIVATE);
 
         editor = sharedPreferences.edit();
         editor.putString("Username", pUsername);
