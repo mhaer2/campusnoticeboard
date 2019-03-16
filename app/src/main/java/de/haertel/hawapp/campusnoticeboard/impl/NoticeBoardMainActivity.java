@@ -9,6 +9,7 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,12 +24,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -55,6 +59,7 @@ import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.NavigationMe
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementViewModel;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.presentation.AnnouncementAdapter;
+import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.presentation.SwipeToDeleteCallback;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
 import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
@@ -67,12 +72,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private DrawerLayout drawer;
     private AnnouncementViewModel announcementViewModel;
     private SharedPreferences sharedPreferences;
-    private SharedPreferences currentUserPref;
-    private SharedPreferences userPref;
-    private final static String CURRENT_USER_PREF = "CurrentUserPref";
-    private String currentUser;
 
-    private String userName;
     private String announcementBoard;
     private DatabaseReference mDatabase;
     private ChildEventListener childEventListener;
@@ -82,14 +82,13 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notice_board_main);
-        String pattern = "dd/MM/yyyy HH:mm";
-        final DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+
         mDatabase = FirebaseDatabase.getInstance()
                 .getReference("flamelink/environments/production/content/announcements/en-US");
 
-        currentUser = CurrentUser.getUsername();
-        userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
-        userName = userPref.getString("Username", "none");
+        String currentUser = CurrentUser.getUsername();
+        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+        String userName = userPref.getString("Username", "none");
         announcementBoard = userPref.getString("AnnouncementBoard", "none");
 
         notificationManager = NotificationManagerCompat.from(this);
@@ -113,7 +112,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         toggleButton.syncState();
 
 
-
         RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         final AnnouncementAdapter announcementAdapter = new AnnouncementAdapter();
@@ -134,9 +132,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                         editor.putLong(getString(R.string.lastInsert), LastInsert.getLastInsert().getTime()).commit();
 
                         editor.putBoolean(getString(R.string.preferenceKeyFirstStart), false);
-                        // Save the changes in SharedPreferences
                         editor.apply();
-
                         _addNewDatabaseEntryListener();
                     }
                 }
@@ -155,6 +151,24 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
         });
 
+        // Hinzufügen von Swipe Funktionalität (SwipeToDelete) zu den Items
+        new ItemTouchHelper(new SwipeToDeleteCallback(this, announcementViewModel, announcementAdapter)).attachToRecyclerView(recyclerView);
+
+        // wenn auf Item aus der Liste geklickt wird, woll die Detailansicht geöffnet werden
+        announcementAdapter.setOnItemClickListener(new AnnouncementAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Announcement announcement) {
+                Intent intent = new Intent(NoticeBoardMainActivity.this, DetailViewActivity.class);
+                intent.putExtra(DetailViewActivity.EXTRA_ID, announcement.getId());
+                intent.putExtra(DetailViewActivity.EXTRA_HEADLINE, announcement.getHeadline());
+                intent.putExtra(DetailViewActivity.EXTRA_AUTHOR, announcement.getAuthor());
+                intent.putExtra(DetailViewActivity.EXTRA_MESSAGE, announcement.getMessage());
+                intent.putExtra(DetailViewActivity.EXTRA_DATE, LastInsert.getDateFormat().format(announcement.getDate()));
+                intent.putExtra(DetailViewActivity.EXTRA_DATE_COUNT, announcement.getDayCountSincePosted());
+                intent.putExtra(DetailViewActivity.EXTRA_NOTICEBOARD, announcement.getNoticeBoard());
+                startActivity(intent);
+            }
+        });
 
         // Falls die Shared Preference noch nicht angelegt wurde
         // (nur der Fall, wenn Datenbank davor noch nicht existent),
@@ -254,13 +268,20 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.delete_older_announcements:
+                long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
+                Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+                announcementViewModel.deleteOlderAnnouncements(deleteBefore);
+                return true;
+//            case R.id.action_settings:
+//
+//                break;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
+
     }
 
     @Override
@@ -403,7 +424,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         mNotificationManager.notify(0, mBuilder.build());
     }
 
-    private void _setToolbarTitle(String pTitle){
+    private void _setToolbarTitle(String pTitle) {
         NoticeBoardMainActivity.this.setTitle(pTitle);
     }
 }

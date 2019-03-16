@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context="de.haertel.hawapp.campusnoticeboard.impl.DetailViewActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_detail"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+    </android.support.v7.widget.Toolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        android:background="@color/black"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            >
+
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:id="@+id/detail_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/detail_day_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/circle_background"
+                        android:gravity="center"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textSize="18dp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/detail_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Titleygnsgfgbhxdfgbhdxgnfgngfjhxsdjnhgjzmsrthshtsthsjtzjsgfhfghfghfgh"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+                        <TextView
+                            android:id="@+id/detail_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                            android:text="01.01.1999" />
+
+                        <TextView
+                            android:id="@+id/detail_author"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                            android:text="Prof. Dr. Albert Einstein" />
+                    </LinearLayout>
+                </LinearLayout>
+                <ScrollView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fillViewport="true"
+                    android:layout_below="@id/detail_header">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:id="@+id/detail_message"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/detail_header"
+                            android:layout_marginTop="8dp"
+                            android:text="Lorem Ipsum Lorem Ipsum Lorem IIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsupsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum " />
+
+                    </LinearLayout>
+
+                </ScrollView>
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+    </LinearLayout>
+</LinearLayout>

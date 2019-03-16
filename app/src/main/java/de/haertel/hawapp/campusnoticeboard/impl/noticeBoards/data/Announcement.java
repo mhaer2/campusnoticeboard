@@ -9,6 +9,17 @@ import java.util.Objects;
 
 @Entity(tableName = "announcement_table")
 public class Announcement implements Comparable<Announcement>{
+    private static final String ZERO_DAY = "NEW";
+    private static final String FIRST_DAY = "1T";
+    private static final String SECOND_DAY = "2T";
+    private static final String THIRD_DAY = "3T";
+    private static final String FOURTH_DAY = "4T";
+    private static final String FIFTH_DAY = "5T";
+    private static final String SIXTH_DAY = "6T";
+    private static final String SEVENTH_DAY = "7T";
+    private static final String MORE_THAN_SEVEN_DAYS = ">7T";
+    private static final String UNVALID_DAYCOUNT = "-1";
+
 
     @PrimaryKey(autoGenerate = true)
     private int id;
@@ -58,6 +69,47 @@ public class Announcement implements Comparable<Announcement>{
 
     public String getNoticeBoard() {
         return noticeBoard;
+    }
+
+
+    public String getDayCountSincePosted(){
+        Date actualDate = new Date();
+        long differenceMillis = actualDate.getTime() - getDate().getTime();
+        int dayDifference = (int) (differenceMillis / (24 * 60 * 60 * 1000));
+        if (dayDifference > 7) {
+            return MORE_THAN_SEVEN_DAYS;
+        }
+        String dayCount;
+        switch (dayDifference) {
+            case 0:
+                dayCount = ZERO_DAY;
+                break;
+            case 1:
+                dayCount = FIRST_DAY;
+                break;
+            case 2:
+                dayCount = SECOND_DAY;
+                break;
+            case 3:
+                dayCount = THIRD_DAY;
+                break;
+            case 4:
+                dayCount = FOURTH_DAY;
+                break;
+            case 5:
+                dayCount = FIFTH_DAY;
+                break;
+            case 6:
+                dayCount = SIXTH_DAY;
+                break;
+            case 7:
+                dayCount = SEVENTH_DAY;
+                break;
+            default:
+                dayCount = UNVALID_DAYCOUNT;
+                break;
+        }
+        return dayCount;
     }
 
     @Override

@@ -19,12 +19,12 @@ import java.util.Locale;
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
+import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
 public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapter.AnnouncementHolder> {
 
+    private OnItemClickListener listener;
     private List<Announcement> announcements = new ArrayList<>();
-    String pattern = "dd/MM/yyyy HH:mm";
-    DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
 
     /**
      * @param pParent   der Recylerview selbst.
@@ -44,13 +44,10 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
     public void onBindViewHolder(@NonNull AnnouncementHolder pAnnouncementHolder, int pPosition) {
         Announcement currentAnnouncement = announcements.get(pPosition);
 
-        Date announcementDate = currentAnnouncement.getDate();
-        String dayCount = _getDayCount(announcementDate);
-
         pAnnouncementHolder.textViewPreview_title.setText(currentAnnouncement.getHeadline());
         pAnnouncementHolder.textViewPreview_message.setText(currentAnnouncement.getMessage());
-        pAnnouncementHolder.textViewPreview_date.setText(dateFormat.format(currentAnnouncement.getDate()));
-        pAnnouncementHolder.textViewPreview_dayCount.setText(dayCount);
+        pAnnouncementHolder.textViewPreview_date.setText(LastInsert.getDateFormat().format(currentAnnouncement.getDate()));
+        pAnnouncementHolder.textViewPreview_dayCount.setText(currentAnnouncement.getDayCountSincePosted());
     }
 
     @Override
@@ -58,7 +55,7 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         return announcements.size();
     }
 
-    public void setAnnouncements(List<Announcement> pAnnouncements){
+    public void setAnnouncements(List<Announcement> pAnnouncements) {
 
         List<Announcement> announcementList = pAnnouncements;
         if (announcementList.size() > 1) {
@@ -68,44 +65,8 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         notifyDataSetChanged();
     }
 
-    private String _getDayCount(Date pAnnouncementDate){
-        Date actualDate = new Date();
-        long differenceMillis = actualDate.getTime() - pAnnouncementDate.getTime();
-        int dayDifference = (int) (differenceMillis / (24 * 60 * 60 * 1000));
-        if (dayDifference > 7){
-            return ">7T";
-        }
-        String dayCount;
-        switch (dayDifference) {
-            case 0:
-                dayCount = "NEW";
-                break;
-            case 1:
-                dayCount = "1T";
-                break;
-            case 2:
-                dayCount = "2T";
-                break;
-            case 3:
-                dayCount = "3T";
-                break;
-            case 4:
-                dayCount = "4T";
-                break;
-            case 5:
-                dayCount = "5T";
-                break;
-            case 6:
-                dayCount = "6T";
-                break;
-            case 7:
-                dayCount = "7T";
-                break;
-            default:
-                dayCount = "-1";
-                break;
-        }
-        return dayCount;
+    public Announcement getAnnouncementAt(int pPosition) {
+        return announcements.get(pPosition);
     }
 
 
@@ -121,6 +82,25 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
             textViewPreview_dayCount = itemView.findViewById(R.id.preview_day_count);
             textViewPreview_message = itemView.findViewById(R.id.preview_message);
             textViewPreview_title = itemView.findViewById(R.id.preview_title);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (listener != null && position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(announcements.get(position));
+
+                    }
+                }
+            });
         }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Announcement announcement);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener pListener) {
+        this.listener = pListener;
     }
 }

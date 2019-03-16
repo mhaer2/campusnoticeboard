@@ -121,7 +121,11 @@ public class LoginActivity extends AppCompatActivity {
         boolean cancel = false;
         View focusView = null;
 
-
+        if (!(username.equals(MARTIN) || username.equals(KHELIL) || username.equals(JUSTUS))){
+            mUsernameView.setError(getString(R.string.error_incorrect_username));
+            focusView = mUsernameView;
+            cancel = true;
+        }
         // Check for a valid email address.
         if (TextUtils.isEmpty(username)) {
             mUsernameView.setError(getString(R.string.error_field_required));
