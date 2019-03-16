@@ -1,13 +1,21 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -35,10 +43,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.NavigationMenuDataHandler;
@@ -49,6 +59,8 @@ import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
 import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
 import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
+
+import static de.haertel.hawapp.campusnoticeboard.impl.BaseApp.CHANNEL_1_ID;
 
 
 public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -64,13 +76,14 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private String announcementBoard;
     private DatabaseReference mDatabase;
     private ChildEventListener childEventListener;
+    private NotificationManagerCompat notificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notice_board_main);
         String pattern = "dd/MM/yyyy HH:mm";
-        final DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+        final DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
         mDatabase = FirebaseDatabase.getInstance()
                 .getReference("flamelink/environments/production/content/announcements/en-US");
 
@@ -79,9 +92,13 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         userName = userPref.getString("Username", "none");
         announcementBoard = userPref.getString("AnnouncementBoard", "none");
 
+        notificationManager = NotificationManagerCompat.from(this);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         //set own Toolbar as ActionBar
         setSupportActionBar(toolbar);
+        this.setTitle(announcementBoard);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         //create HamburgerButton to toggle the NavigationDrawer and add it to the Toolbar
         ActionBarDrawerToggle toggleButton = new ActionBarDrawerToggle(this, drawer,
@@ -91,8 +108,11 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                 super.onDrawerOpened(drawerView);
             }
         };
+
         drawer.addDrawerListener(toggleButton);
         toggleButton.syncState();
+
+
 
         RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -125,6 +145,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     @Override
                     public void onChanged(@Nullable List<Announcement> pAnnouncements) {
                         announcementAdapter.setAnnouncements(pAnnouncements);
+
                         if (drawer.isDrawerOpen(GravityCompat.START)) {
                             drawer.closeDrawer(GravityCompat.START);
                         }
@@ -152,7 +173,16 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         View parentView = navigationViewHeader.getRootView();
         TextView navigationHeaderUsername = (TextView) parentView.findViewById(R.id.navigation_header_username);
         Button navigationHeaderDefaultDepartmentButton = (Button) parentView.findViewById(R.id.navigation_header_defaultDepartment_button);
-
+        navigationHeaderDefaultDepartmentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AnnouncementTopic.setTopic(announcementBoard);
+                NoticeBoardMainActivity.this.setTitle(announcementBoard);
+                if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                }
+            }
+        });
 
         if (navigationView != null) {
             setupDrawerContent(navigationView);
@@ -250,7 +280,8 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
 
                 String pattern = "yyyy-MM-dd'T'HH:mm";
-                DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+                DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getDefault());
                 Map<String, String> map = (Map) dataSnapshot.getValue();
 
                 Date dateOfNewInsert = null;
@@ -259,12 +290,14 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
-                Calendar cal = Calendar.getInstance(); // creates calendar
+                TimeZone timeZone = TimeZone.getDefault();
+                int offsetMillis = -1 * timeZone.getRawOffset();
+                Calendar cal = new GregorianCalendar(); // creates calendar
                 cal.setTime(LastInsert.getLastInsert()); // sets calendar time/date
+                cal.add(Calendar.MILLISECOND, offsetMillis);
                 cal.add(Calendar.HOUR_OF_DAY, 1); // adds one hour
 
-                Date lastInsert = cal.getTime();
+                Date lastInsert = cal.getTime();//LastInsert.getLastInsert();
 
                 if (Objects.requireNonNull(dateOfNewInsert).after(lastInsert)) {
                     String authorOfNewInsert = map.get("author");
@@ -281,6 +314,9 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     editor.remove(getString(R.string.lastInsert));
                     editor.putLong(getString(R.string.lastInsert), new Date().getTime()).commit();
                     LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
+
+                    sendOnChannel1(headlineOfNewInsert, messageOfNewInsert);
+                    //_showNotification(headlineOfNewInsert, messageOfNewInsert);
                 }
             }
 
@@ -319,7 +355,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         @Override
         protected Void doInBackground(Announcement... pAnnouncements) {
             announcementViewModel.insert(pAnnouncements[0]);
-
             return null;
         }
     }
@@ -328,5 +363,47 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     protected void onDestroy() {
         super.onDestroy();
         mDatabase.removeEventListener(childEventListener);
+    }
+
+
+    public void sendOnChannel1(String pTitle, String pMessage) {
+        String title = pTitle;
+        String message = pMessage;
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
+                .setSmallIcon(R.mipmap.ic_logo_round)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .build();
+
+        notificationManager.notify(1, notification);
+    }
+
+    private void _showNotification(String pTitle, String pMessage) {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default",
+                    "YOUR_CHANNEL_NAME",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DISCRIPTION");
+            mNotificationManager.createNotificationChannel(channel);
+        }
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
+                .setSmallIcon(R.mipmap.ic_logo_round) // notification icon
+                .setContentTitle(pTitle) // title for notification
+                .setContentText(pMessage)// message for notification
+                //.setSound(alarmSound) // set alarm sound for notification
+                .setAutoCancel(true); // clear notification after click
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(pi);
+        mNotificationManager.notify(0, mBuilder.build());
+    }
+
+    private void _setToolbarTitle(String pTitle){
+        NoticeBoardMainActivity.this.setTitle(pTitle);
     }
 }

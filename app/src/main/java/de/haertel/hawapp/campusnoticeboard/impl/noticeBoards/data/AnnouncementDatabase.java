@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
@@ -59,11 +60,12 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
             final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     // HashSet anstelle von ArrayList, da die containsMethode bei HashSet deutlich bessere Performance hat
                     HashMap<String, HashMap<String, String>> outerMap = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
                     String pattern = "yyyy-MM-dd'T'HH:mm";
-                    DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+                    DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
                     String author;
                     String headline;
                     String message;

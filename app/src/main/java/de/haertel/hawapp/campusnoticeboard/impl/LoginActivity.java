@@ -13,11 +13,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
@@ -37,17 +33,10 @@ public class LoginActivity extends AppCompatActivity {
 
     // UI references.
     private EditText mUsernameView;
-    private EditText mPasswordView;
     private View mLoginFormView;
-    SharedPreferences mypreferences;
     private final static String MARTIN = "Martin";
     private final static String KHELIL = "Khelil";
     private final static String JUSTUS = "Justus";
-    private final static String CURRENT_USER_PREF = "CurrentUserPref";
-    private final static String CURRENT_USER = "CurrentUser";
-    SharedPreferences martinPref;
-    SharedPreferences khelilPref;
-    SharedPreferences justusPref;
 
 
     @SuppressLint("ApplySharedPref")
@@ -75,7 +64,6 @@ public class LoginActivity extends AppCompatActivity {
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
 
         Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
         mSignInButton.setOnClickListener(new OnClickListener() {
@@ -126,11 +114,9 @@ public class LoginActivity extends AppCompatActivity {
 
         // Reset errors.
         mUsernameView.setError(null);
-        mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
         String username = mUsernameView.getText().toString();
-        String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -150,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            mAuthTask = new UserLoginTask(username, password);
+            mAuthTask = new UserLoginTask(username);
             mAuthTask.execute((Void) null);
         }
     }
@@ -163,11 +149,9 @@ public class LoginActivity extends AppCompatActivity {
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mUsername;
-        private final String mPassword;
 
-        UserLoginTask(String email, String password) {
+        UserLoginTask(String email) {
             mUsername = email;
-            mPassword = password;
         }
 
         @Override
@@ -191,8 +175,8 @@ public class LoginActivity extends AppCompatActivity {
                 LoginActivity.this.startActivity(myIntent);
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                mUsernameView.setError(getString(R.string.error_incorrect_username));
+                mUsernameView.requestFocus();
             }
         }
 

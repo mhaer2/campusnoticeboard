@@ -245,7 +245,7 @@ public class NavigationMenuDataHandler {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
-
+                mainActivity.setTitle(AnnouncementTopic.getTopic());
                 return false;
             }
         });
@@ -260,6 +260,7 @@ public class NavigationMenuDataHandler {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
+                mainActivity.setTitle(AnnouncementTopic.getTopic());
                 return false;
             }
         });

@@ -24,7 +24,7 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
 
     private List<Announcement> announcements = new ArrayList<>();
     String pattern = "dd/MM/yyyy HH:mm";
-    DateFormat dateFormat = new SimpleDateFormat(pattern, new Locale("de", "DE"));
+    DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
 
     /**
      * @param pParent   der Recylerview selbst.

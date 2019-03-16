@@ -7,9 +7,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity"
-    tools:openDrawer="start"
-    >
+    tools:context="de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity">
+    <!--tools:openDrawer="start"-->
+    <!--&gt;-->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,7 +23,9 @@
             android:background="@color/colorPrimary"
             android:elevation="4dp"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
+
+        </android.support.v7.widget.Toolbar>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/announcement_preview_recycler_view"
