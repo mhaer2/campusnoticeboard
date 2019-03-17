@@ -9,7 +9,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,14 +24,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -70,7 +67,7 @@ import static de.haertel.hawapp.campusnoticeboard.impl.BaseApp.CHANNEL_1_ID;
 
 public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
-    private AnnouncementViewModel announcementViewModel;
+    public static AnnouncementViewModel announcementViewModel;
     private SharedPreferences sharedPreferences;
 
     private String announcementBoard;
@@ -78,7 +75,8 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private ChildEventListener childEventListener;
     private NotificationManagerCompat notificationManager;
 
-
+    private RecyclerView recyclerView;
+    private AnnouncementAdapter announcementAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,9 +112,9 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         toggleButton.syncState();
 
 
-        final RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
+        recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        final AnnouncementAdapter announcementAdapter = new AnnouncementAdapter();
+        announcementAdapter = new AnnouncementAdapter();
         recyclerView.setAdapter(announcementAdapter);
 
         announcementViewModel = ViewModelProviders.of(this).get(AnnouncementViewModel.class);
@@ -224,15 +222,28 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         super.onResume();
         _setNavigationHeaderButtonText();
     }
-    private void _setNavigationHeaderButtonText(){
+
+
+    private void _setNavigationHeaderButtonText() {
         String currentUser = CurrentUser.getUsername();
-        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+        final SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         ViewGroup navigationViewHeader = (ViewGroup) navigationView.getHeaderView(0);
         View parentView = navigationViewHeader.getRootView();
         Button navigationHeaderDefaultDepartmentButton = (Button) parentView.findViewById(R.id.navigation_header_defaultDepartment_button);
         navigationHeaderDefaultDepartmentButton.setText(userPref.getString("AnnouncementBoard", "none"));
+
+        navigationHeaderDefaultDepartmentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AnnouncementTopic.setTopic(userPref.getString("AnnouncementBoard", "none"));
+                NoticeBoardMainActivity.this.setTitle(userPref.getString("AnnouncementBoard", "none"));
+                if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                }
+            }
+        });
     }
 
     /**
@@ -292,11 +303,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-//            case R.id.delete_older_announcements:
-//                long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
-//                Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
-//
-//                announcementViewModel.deleteOlderAnnouncements(deleteBefore);
             case R.id.open_settings:
                 Intent intent = new Intent(NoticeBoardMainActivity.this, SettingsActivity.class);
                 //intent.putExtra(SettingsActivity.EXTRA_ANNOUNCEMENT_VIEW_MODEL, this);

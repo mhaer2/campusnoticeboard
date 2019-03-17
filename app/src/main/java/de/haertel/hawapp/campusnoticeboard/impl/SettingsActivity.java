@@ -1,9 +1,12 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -15,23 +18,36 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.MenuEntry;
+import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.Announcement;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementDao;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementDatabase;
 import de.haertel.hawapp.campusnoticeboard.impl.noticeBoards.data.AnnouncementViewModel;
-import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.CurrentUser;
+import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
 public class SettingsActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
@@ -44,6 +60,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     private boolean pushEnabled;
 
     private String retrnTopic;
+    private boolean returnDeleteOlder = false;
 
     private Button settingsDeleteOlderEntriesButton;
     private Button settingsRestoreEntriesButton;
@@ -57,7 +74,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
+        returnDeleteOlder = false;
         settingsDeleteOlderEntriesButton = findViewById(R.id.settings_delete_older_entries);
         settingsRestoreEntriesButton = findViewById(R.id.settings_restore_entries);
         settingsDefaultDepartmentSpinner = findViewById(R.id.settings_default_department_spinner);
@@ -81,7 +98,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         AnnouncementDatabase database = AnnouncementDatabase.getInstance(this);
         final AnnouncementDao announcementDao = database.announcementDao();
 
-        List<String> menuEntryTitles = _fetchChildEntryTitles();
+        final List<String> menuEntryTitles = _fetchChildEntryTitles();
         Collections.sort(menuEntryTitles, new Comparator<String>() {
             @Override
             public int compare(String string1, String string2) {
@@ -100,17 +117,30 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         settingsDeleteOlderEntriesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                returnDeleteOlder = true;
+//                View view = new View(SettingsActivity.this);
+//                int pos = menuEntryTitles.indexOf(announcementBoard);
+    //            SettingsActivity.this.onItemSelected(settingsDefaultDepartmentSpinner, view, 0, 0);
+      //          SettingsActivity.this.onItemSelected(settingsDefaultDepartmentSpinner, view, pos, pos);
+     //           settingsDefaultDepartmentSpinner.setSelection(0);
+       //         settingsDefaultDepartmentSpinner.setSelection(pos);
+                //NoticeBoardMainActivity.deleteOlderEntries();
                 long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
                 Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
-                announcementDao.deleteOlderAnnouncements(deleteBefore);
+                NoticeBoardMainActivity.announcementViewModel.deleteOlderAnnouncements(deleteBefore);
             }
         });
         settingsRestoreEntriesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (_isNetworkAvailable()){
+                    NoticeBoardMainActivity.announcementViewModel.deleteAllNotes();
+                    _repopulateEntries();
+                }
 
             }
         });
+
 
 
         settingsLogoutButton.setOnClickListener(new View.OnClickListener() {
@@ -125,7 +155,75 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
 
     }
 
+    private void _repopulateEntries() {
+        final HashSet<Announcement> announcements = new HashSet<>();
+        final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
+        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // HashSet anstelle von ArrayList, da die containsMethode bei HashSet deutlich bessere Performance hat
+                HashMap<String, HashMap<String, String>> outerMap = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
+                String pattern = "yyyy-MM-dd'T'HH:mm";
+                DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+                String author;
+                String headline;
+                String message;
+                String noticeboard;
+                Date date;
+                for (HashMap<String, String> middleMap : Objects.requireNonNull(outerMap).values()) {
+                    author = null;
+                    headline = null;
+                    message = null;
+                    noticeboard = null;
+                    date = null;
+                    for (Map.Entry<String, String> entry : middleMap.entrySet()) {
+                        String key = String.valueOf(entry.getKey());
+                        String value = String.valueOf(entry.getValue());
 
+                        switch (key) {
+                            case "author":
+                                author = value;
+                                break;
+                            case "headline":
+                                headline = value;
+                                break;
+                            case "message":
+                                message = value;
+                                break;
+                            case "noticeboard":
+                                noticeboard = value;
+                            case "date":
+                                try {
+                                    date = dateFormat.parse(value);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                        }
+                    }
+                    if (author != null || headline != null || message != null || noticeboard != null || date != null) {
+                        announcements.add(new Announcement(headline, author, message, date, noticeboard));
+                    }
+                }
+
+                new RepoulateEntriesAsyncTask(NoticeBoardMainActivity.announcementViewModel).execute(announcements);
+
+
+                SharedPreferences shared = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
+                SharedPreferences.Editor editor = shared.edit();
+                editor.remove(getString(R.string.lastInsert));
+                editor.putLong(getString(R.string.lastInsert), new Date().getTime()).commit();
+                LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
 
 
     @Override
@@ -148,8 +246,9 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent myIntent = new Intent(SettingsActivity.this, NoticeBoardMainActivity.class);
-        SettingsActivity.this.startActivity(myIntent);
+//        Intent myIntent = new Intent(SettingsActivity.this, NoticeBoardMainActivity.class);
+//        myIntent.putExtra(NoticeBoardMainActivity.EXTRA_DELETE_OLDER, returnDeleteOlder);
+//        SettingsActivity.this.startActivity(myIntent);
         finish();
     }
 
@@ -197,4 +296,30 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
+    private boolean _isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+
+    private static class RepoulateEntriesAsyncTask extends AsyncTask<HashSet<Announcement>, Void, Void> {
+        private AnnouncementViewModel announcementViewModel;
+
+        private RepoulateEntriesAsyncTask(AnnouncementViewModel pAnnouncementViewModel) {
+            announcementViewModel = pAnnouncementViewModel;
+        }
+
+        @Override
+        protected Void doInBackground(HashSet<Announcement>... pAnnouncements) {
+            for (Announcement announcement : pAnnouncements[0]) {
+                announcementViewModel.insert(announcement);
+            }
+            LastInsert.setLastInsert(new Date());
+
+            return null;
+        }
+    }
+
 }
