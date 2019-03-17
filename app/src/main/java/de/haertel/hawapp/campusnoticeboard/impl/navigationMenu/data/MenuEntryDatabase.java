@@ -11,19 +11,21 @@ import android.content.Context;
 
 @Database(entities = {MenuEntry.class}, version = 3, exportSchema = false)
 public abstract class MenuEntryDatabase extends RoomDatabase {
-
+    private static final String MENUENTRY_DATABASE_NAME = "menuEntry_database";
     private static MenuEntryDatabase instance;
+
     public abstract MenuEntryDao menuEntryDao();
 
     /**
      * Liefert eine Instanz der Datanbank der Menüeinträge
+     *
      * @param context der Kontext, über den der Applikationskontext geholt werden kann
      * @return die Datenbank der Menüeinträge
      */
-    public static synchronized MenuEntryDatabase getInstance(Context context) {
+    static synchronized MenuEntryDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
-                    MenuEntryDatabase.class, "menuEntry_database")
+                    MenuEntryDatabase.class, MENUENTRY_DATABASE_NAME)
                     .fallbackToDestructiveMigration()
                     .build();
         }

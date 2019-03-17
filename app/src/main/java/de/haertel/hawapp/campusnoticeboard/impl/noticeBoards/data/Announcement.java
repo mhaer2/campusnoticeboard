@@ -7,8 +7,11 @@ import android.arch.persistence.room.TypeConverters;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * POJO as Entity, for saving announcements to the SQLite Database in this structur.
+ */
 @Entity(tableName = "announcement_table")
-public class Announcement implements Comparable<Announcement>{
+public class Announcement implements Comparable<Announcement> {
     private static final String ZERO_DAY = "NEW";
     private static final String FIRST_DAY = "1T";
     private static final String SECOND_DAY = "2T";
@@ -71,8 +74,13 @@ public class Announcement implements Comparable<Announcement>{
         return noticeBoard;
     }
 
-
-    public String getDayCountSincePosted(){
+    /**
+     * Liefert die Anzahl der Tage als Differenz zwischen 0 und 7. (
+     * 'NEW' bei 0 und '>7T' bei größer 7 Tagen
+     *
+     * @return die Anzahl als lesbarer String
+     */
+    public String getDayCountSincePosted() {
         Date actualDate = new Date();
         long differenceMillis = actualDate.getTime() - getDate().getTime();
         int dayDifference = (int) (differenceMillis / (24 * 60 * 60 * 1000));
@@ -112,6 +120,12 @@ public class Announcement implements Comparable<Announcement>{
         return dayCount;
     }
 
+    /**
+     * Der Komparator der zwei Bekanntmachungen nach Datum Sortiert
+     *
+     * @param announcementToCompare die zu vergleichene Bekanntmachung
+     * @return größer gleich kleiner als Integer
+     */
     @Override
     public int compareTo(Announcement announcementToCompare) {
         long time1 = this.date.getTime();
@@ -126,6 +140,9 @@ public class Announcement implements Comparable<Announcement>{
         }
     }
 
+    /**
+     * Die Equals Methode der Klasse
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -138,8 +155,4 @@ public class Announcement implements Comparable<Announcement>{
                 Objects.equals(noticeBoard, that.noticeBoard);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(headline, author, message, date, noticeBoard);
-    }
 }

@@ -24,8 +24,16 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     private List<ExpandedMenuModel> mListDataHeader; // header titles
 
     private HashMap<ExpandedMenuModel, List<String>> mListDataChild;
-    ExpandableListView expandList;
+    private ExpandableListView expandList;
 
+    /**
+     * Der Konstruktor
+     *
+     * @param context        der Kontext
+     * @param listDataHeader die Liste mit den Header-Menüeinträgen
+     * @param listChildData  die Liste mit den Kind-Menüeinträgen
+     * @param mView          die ListView
+     */
     public ExpandableListAdapter(Context context, List<ExpandedMenuModel> listDataHeader, HashMap<ExpandedMenuModel, List<String>> listChildData, ExpandableListView mView) {
         this.mContext = context;
         this.mListDataHeader = listDataHeader;
@@ -48,9 +56,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      */
     @Override
     public int getChildrenCount(int groupPosition) {
-        int childCount = 0;
+        int childCount;
 
-        childCount = this.mListDataChild.get(this.mListDataHeader.get(groupPosition))
+        childCount = Objects.requireNonNull(this.mListDataChild.get(this.mListDataHeader.get(groupPosition)))
                 .size();
 
         return childCount;
@@ -58,6 +66,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Liefert die Gruppe für eine gegebene Position.
+     *
      * @param groupPosition die Gruppenposition
      * @return das Gruppen Objekt
      */
@@ -68,6 +77,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Liefert ein Child für gegebene Positionen.
+     *
      * @param groupPosition die Grupppenposition.
      * @param childPosition die Kindposition.
      * @return Das Child-Objekt
@@ -80,6 +90,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Liefert die GruppenId
+     *
      * @param groupPosition die Position des Elements.
      * @return die  ID.
      */
@@ -87,8 +98,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     public long getGroupId(int groupPosition) {
         return groupPosition;
     }
+
     /**
      * Liefert die ChildId
+     *
      * @param groupPosition die Position des Elements.
      * @param childPosition die Childposition.
      * @return die  ID.
@@ -110,9 +123,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      * Liefert die Ansicht der Gruppe.
      *
      * @param groupPosition die Gruppenposition.
-     * @param isExpanded true falls Gruppe expanded
-     * @param convertView die convertView, also alte View
-     * @param parent Der Parent als ViewGroup
+     * @param isExpanded    true falls Gruppe expanded
+     * @param convertView   die convertView, also alte View
+     * @param parent        Der Parent als ViewGroup
      * @return Die View der Gruppe für die angegebenen Parameter.
      */
     @SuppressLint("InflateParams")
@@ -125,7 +138,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = infalInflater.inflate(R.layout.navigation_expandablelist_menu, null);
         }
-        TextView lblListHeader = (TextView) view
+        TextView lblListHeader = view
                 .findViewById(R.id.expandablelistMenu);
         lblListHeader.setTypeface(null, Typeface.BOLD);
         lblListHeader.setText(headerTitle.getMenuName());
@@ -137,9 +150,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      *
      * @param groupPosition die Position der Gruppe.
      * @param childPosition die KindPosition.
-     * @param isLastChild ob es das letzte Kind ist.
-     * @param convertView die convertView, also alte View
-     * @param parent der Parent
+     * @param isLastChild   ob es das letzte Kind ist.
+     * @param convertView   die convertView, also alte View
+     * @param parent        der Parent
      * @return Die View des Childs für die angegebenen Parameter.
      */
     @SuppressLint("InflateParams")
@@ -153,7 +166,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             convertView = infalInflater.inflate(R.layout.navigation_expandablelist_submenu, null);
         }
 
-        TextView txtListChild = (TextView) convertView
+        TextView txtListChild = convertView
                 .findViewById(R.id.expandablelistSubMenu);
 
         txtListChild.setText(childText);
@@ -163,6 +176,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Liefert ob Kind selektierbar.
+     *
      * @param groupPosition gruppenposition des Childs
      * @param childPosition Childposition in der Gruppe
      * @return true falls seletktierbar.

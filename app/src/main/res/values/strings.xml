@@ -53,4 +53,5 @@
     <string name="share_button_title">Share</string>
     <string name="channel1_description">This is Channel 1</string>
     <string name="channel1_name">Channel 1</string>
+    <string name="imagedescription">imageDescription</string>
 </resources>

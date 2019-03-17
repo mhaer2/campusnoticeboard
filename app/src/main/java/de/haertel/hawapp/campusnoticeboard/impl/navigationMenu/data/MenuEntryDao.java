@@ -10,13 +10,13 @@ import android.arch.persistence.room.Update;
 import java.util.List;
 
 /**
- *  Data Access Object, for access to Menu Entries.
+ * Data Access Object, for access to Menu Entries.
  */
 @Dao
 public interface MenuEntryDao {
 
     @Insert
-    void insert (MenuEntry menuEntry);
+    void insert(MenuEntry menuEntry);
 
     @Update
     void update(MenuEntry menuEntry);

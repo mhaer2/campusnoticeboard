@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context=".impl.SettingsActivity">
+    tools:context=".impl.activities.SettingsActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_settings"
@@ -22,163 +22,161 @@
     <LinearLayout
         android:id="@+id/settings_background"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorGreyLightest">
+        android:layout_height="wrap_content"
+        android:background="@color/colorGreyLightest"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:id="@+id/settings_entry_container"
+        <Button
+            android:id="@+id/settings_delete_older_entries"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="@drawable/settings_button_bg"
+            android:drawableStart="@drawable/ic_delete_black_24dp"
+            android:drawablePadding="12dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:paddingStart="8dp"
+            android:text="@string/delete_older_entries_7t"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            tools:ignore="RtlSymmetry" />
 
-            <Button
-                android:id="@+id/settings_delete_older_entries"
-                android:layout_width="match_parent"
+        <Button
+            android:id="@+id/settings_restore_entries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/settings_button_bg"
+            android:drawableStart="@drawable/ic_settings_backup_restore_black_24dp"
+            android:drawablePadding="12dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:paddingStart="8dp"
+            android:text="@string/restore_all_entries"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            tools:ignore="RtlSymmetry" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/settings_button_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/settings_button_bg"
-                android:drawableStart="@drawable/ic_delete_black_24dp"
-                android:drawablePadding="12dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="2"
+                android:padding="12dp"
                 android:paddingStart="8dp"
-                android:text="@string/delete_older_entries_7t"
+                android:src="@drawable/ic_star"
+                tools:ignore="RtlSymmetry"
+                android:contentDescription="@string/imagedescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="@string/default_board"
                 android:textAllCaps="false"
                 android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                 android:textColor="@color/black"
-                android:textSize="20sp"
-                tools:ignore="RtlSymmetry" />
+                android:textSize="20sp" />
 
-            <Button
-                android:id="@+id/settings_restore_entries"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/settings_button_bg"
-                android:drawableStart="@drawable/ic_settings_backup_restore_black_24dp"
-                android:drawablePadding="12dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="2"
-                android:paddingStart="8dp"
-                android:text="@string/restore_all_entries"
-                android:textAllCaps="false"
-                android:textAppearance="@style/TextAppearance.AppCompat.Menu"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                tools:ignore="RtlSymmetry" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/settings_button_bg"
-                android:gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/default_department_spinner_bg"
                 android:orientation="horizontal">
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:paddingStart="8dp"
-                    android:src="@drawable/ic_star"
-                    tools:ignore="RtlSymmetry" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/default_board"
-                    android:textAllCaps="false"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Menu"
-                    android:textColor="@color/black"
-                    android:textSize="20sp" />
-
-                <RelativeLayout
+                <Spinner
+                    android:id="@+id/settings_default_department_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:background="@drawable/default_department_spinner_bg"
-                    android:orientation="horizontal">
+                    android:background="@android:color/transparent"
+                    android:spinnerMode="dropdown">
 
-                    <Spinner
-                        android:id="@+id/settings_default_department_spinner"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:background="@android:color/transparent"
-                        android:spinnerMode="dropdown">
-
-                    </Spinner>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_arrow_drop_down_black_24dp" />
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/settings_button_bg"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                </Spinner>
 
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:paddingStart="8dp"
-                    android:src="@drawable/ic_notifications"
-                    tools:ignore="RtlSymmetry" />
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="@string/imagedescription"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_arrow_drop_down_black_24dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/push_notifications"
-                    android:textAllCaps="false"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Menu"
-                    android:textColor="@color/black"
-                    android:textSize="20sp" />
+            </RelativeLayout>
 
-                <Switch
-                    android:id="@+id/settings_push_notification_switch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:checked="true"
-                    android:gravity="center_vertical|end"
-                    android:theme="@style/SwitchTheme"
+        </LinearLayout>
 
-                    />
-            </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/settings_button_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/settings_logout_btn"
-                android:layout_width="match_parent"
+            <ImageView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/settings_button_bg"
-                android:drawableStart="@drawable/ic_exit_to_app"
-                android:drawablePadding="12dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="2"
+                android:padding="12dp"
                 android:paddingStart="8dp"
-                android:text="@string/logout"
+                android:contentDescription="@string/imagedescription"
+                android:src="@drawable/ic_notifications"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="@string/push_notifications"
                 android:textAllCaps="false"
                 android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                 android:textColor="@color/black"
-                android:textSize="20sp"
-                tools:ignore="RtlSymmetry" />
+                android:textSize="20sp" />
+
+            <Switch
+                android:id="@+id/settings_push_notification_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true"
+                android:gravity="center_vertical|end"
+                android:theme="@style/SwitchTheme"
+
+                />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/settings_logout_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/settings_button_bg"
+            android:drawableStart="@drawable/ic_exit_to_app"
+            android:drawablePadding="12dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:paddingStart="8dp"
+            android:text="@string/logout"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            tools:ignore="RtlSymmetry" />
+
     </LinearLayout>
 </LinearLayout>

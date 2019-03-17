@@ -24,26 +24,42 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
-
+/**
+ * Datenbank, welche die Bekanntmachungen inne hat. Diese Klasse greift über das DAO aauf die SQLite DB zu.
+ */
 @Database(entities = {Announcement.class}, version = 2, exportSchema = false)
 @TypeConverters(DateTypeConverter.class)
 public abstract class AnnouncementDatabase extends RoomDatabase {
-    private static boolean isAnnouncementListPopulated = false;
-    private static boolean isDatabasePopulated = false;
     private static AnnouncementDatabase instance;
+    private static final String ANNOUNCEMENT_DATABASE_NAME = "announcement_database";
+    private static final String ANNOUNCEMENTS_REFERENCE_FIREBASE = "flamelink/environments/production/content/announcements/en-US";
+    private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm";
+    private static final String HEADLINE = "headline";
+    private static final String AUTHOR = "author";
+    private static final String MESSAGE = "message";
+    private static final String NOTICEBOARD = "noticeboard";
+    private static final String DATE = "date";
 
+
+    /**
+     * @return das DAO der Announcements
+     */
     public abstract AnnouncementDao announcementDao();
 
-
+    /**
+     * Liefert eine Instanz der Datanbank der Bekanntmachungen
+     *
+     * @param context der Kontext, über den der Applikationskontext geholt werden kann
+     * @return die Datenbank der Bekanntmachungen
+     */
     public static synchronized AnnouncementDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
-                    AnnouncementDatabase.class, "announcement_database")
+                    AnnouncementDatabase.class, ANNOUNCEMENT_DATABASE_NAME)
                     .fallbackToDestructiveMigration()
                     .addCallback(roomCallback)
                     .build();
@@ -51,21 +67,32 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         return instance;
     }
 
+    /**
+     * CallBack, welches die Datenbank initial befüllt mit den Daten aus Firebase.
+     */
     private static RoomDatabase.Callback roomCallback = new RoomDatabase.Callback() {
+        /**
+         * Methode die Aufgerufen wird beim kreieren der Datenbank
+         * @param db die Datenbank
+         */
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
 
             final HashSet<Announcement> announcements = new HashSet<>();
-            final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/content/announcements/en-US");
+            final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference(ANNOUNCEMENTS_REFERENCE_FIREBASE);
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                /**
+                 * Bei Änderung der Daten in der Firebase Datenbank wird die SQLite Datenbank befüllt.
+                 *
+                 * @param dataSnapshot snapshot von den Daten der angegebnen Referenz.
+                 */
                 @Override
                 @SuppressWarnings("unchecked")
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     // HashSet anstelle von ArrayList, da die containsMethode bei HashSet deutlich bessere Performance hat
                     HashMap<String, HashMap<String, String>> outerMap = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
-                    String pattern = "yyyy-MM-dd'T'HH:mm";
-                    DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+                    DateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN, Locale.getDefault());
                     String author;
                     String headline;
                     String message;
@@ -80,20 +107,19 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                         for (Map.Entry<String, String> entry : middleMap.entrySet()) {
                             String key = String.valueOf(entry.getKey());
                             String value = String.valueOf(entry.getValue());
-
                             switch (key) {
-                                case "author":
+                                case AUTHOR:
                                     author = value;
                                     break;
-                                case "headline":
+                                case HEADLINE:
                                     headline = value;
                                     break;
-                                case "message":
+                                case MESSAGE:
                                     message = value;
                                     break;
-                                case "noticeboard":
+                                case NOTICEBOARD:
                                     noticeboard = value;
-                                case "date":
+                                case DATE:
                                     try {
                                         date = dateFormat.parse(value);
                                     } catch (ParseException e) {
@@ -106,12 +132,14 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                             announcements.add(new Announcement(headline, author, message, date, noticeboard));
                         }
                     }
-
                     //noinspection unchecked
                     new PopulateDbAsyncTask(instance).execute(announcements);
-
                 }
 
+                /**
+                 * keine Funktion da nicht implementiert
+                 * @param databaseError der Fehler
+                 */
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -122,23 +150,9 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         }
     };
 
-
-    private static class InsertNewEntryAsyncTask extends AsyncTask<Announcement, Void, Void> {
-        private AnnouncementDao announcementDao;
-
-        private InsertNewEntryAsyncTask(AnnouncementDatabase db) {
-            announcementDao = db.announcementDao();
-        }
-
-        @Override
-        protected Void doInBackground(Announcement... pAnnouncements) {
-
-            announcementDao.insert(pAnnouncements[0]);
-            LastInsert.setLastInsert(new Date());
-            return null;
-        }
-    }
-
+    /**
+     * Der Asynchrone Task, der Die SQLite DB befüllt.
+     */
     private static class PopulateDbAsyncTask extends AsyncTask<HashSet<Announcement>, Void, Void> {
         private AnnouncementDao announcementDao;
 
@@ -146,6 +160,13 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
             announcementDao = db.announcementDao();
         }
 
+        /**
+         * Befüllt die Datenbank ehe die Zeit für den aktuell letztn Insert gespeichert wird.
+         * Auch das Announcement Topic wird initial gesetzt.
+         *
+         * @param pAnnouncements die Bekanntmachungen als Set
+         * @return void
+         */
         @SafeVarargs
         @Override
         protected final Void doInBackground(HashSet<Announcement>... pAnnouncements) {
@@ -159,20 +180,6 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
         }
 
 
-    }
-
-    private static class DeleteAnnouncementAsyncTask extends AsyncTask<Announcement, Void, Void> {
-        private AnnouncementDao announcementDao;
-
-        private DeleteAnnouncementAsyncTask(AnnouncementDao pAnnouncementDao) {
-            this.announcementDao = pAnnouncementDao;
-        }
-
-        @Override
-        protected Void doInBackground(Announcement... pAnnouncements) {
-            announcementDao.delete(pAnnouncements[0]);
-            return null;
-        }
     }
 
 

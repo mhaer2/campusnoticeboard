@@ -17,6 +17,11 @@ public class MenuEntryViewModel extends AndroidViewModel {
     private MenuEntryRepository repository;
     private LiveData<List<MenuEntry>> allMenuEntries;
 
+    /**
+     * Konstruktor des ViewModels
+     *
+     * @param application das Applikations-Objekt
+     */
     public MenuEntryViewModel(@NonNull Application application) {
         super(application);
         repository = new MenuEntryRepository(application);
@@ -28,35 +33,41 @@ public class MenuEntryViewModel extends AndroidViewModel {
      *
      * @param pMenuEntry der Menüeintrag
      */
-    public void insert(MenuEntry pMenuEntry){
+    public void insert(MenuEntry pMenuEntry) {
         repository.insert(pMenuEntry);
     }
+
     /**
      * Ruft die Methode im Repository auf, die das Update vornimmt.
+     *
      * @param pMenuEntry der Menüeintrag
      */
-    public void update(MenuEntry pMenuEntry){
+    public void update(MenuEntry pMenuEntry) {
         repository.update(pMenuEntry);
     }
+
     /**
      * Ruft die Methode im Repository auf, die das Delete vornimmt.
+     *
      * @param pMenuEntry der Menüeintrag
      */
-    public void delete(MenuEntry pMenuEntry){
+    public void delete(MenuEntry pMenuEntry) {
         repository.delete(pMenuEntry);
     }
+
     /**
      * Ruft die Methode im Repository auf, die das Löschen aller Einträge vornimmt.
      */
-    public void deleteAllMenuEntries(){
+    void deleteAllMenuEntries() {
         repository.deleteAllMenuEntries();
     }
 
     /**
      * Ruft die Methode im Repository auf, die alle Einträge bereitstellt.
-     * @return eine Liste mit Menüeinträgen als LiveDate.
+     *
+     * @return eine Liste mit Menüeinträgen als LiveData.
      */
-    public LiveData<List<MenuEntry>> getAllMenuEntries(){
+    LiveData<List<MenuEntry>> getAllMenuEntries() {
         return allMenuEntries;
     }
 }

@@ -21,6 +21,12 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
     private int listViewTouchAction;
     private static final int MAXIMUM_LIST_ITEMS_VIEWABLE = 1000;
 
+    /**
+     * Konstruktor für die eigene ExpandableListView.
+     *
+     * @param context der Kontext.
+     * @param attrs   Attribute, die dem Super Konstruktor weitergegeben werden.
+     */
     public NestedListView(Context context, AttributeSet attrs) {
         super(context, attrs);
         listViewTouchAction = -1;
@@ -31,7 +37,7 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
     /**
      * Wird bei einem Klick aufgerufen
      *
-     * @param v die View
+     * @param v     die View
      * @param event Das Touchevent
      * @return immer false
      */

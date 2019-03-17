@@ -10,6 +10,7 @@ public class ExpandedMenuModel {
     public String getMenuName() {
         return menuName;
     }
+
     public void setMenuName(String pMenuName) {
         menuName = pMenuName;
     }

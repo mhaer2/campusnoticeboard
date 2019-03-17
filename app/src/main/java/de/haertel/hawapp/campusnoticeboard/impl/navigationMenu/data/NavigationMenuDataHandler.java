@@ -43,6 +43,7 @@ import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 public class NavigationMenuDataHandler {
     private final String MENU_ENTRY_STORE_KEY = "menuEntryPreference";
     private final String MY_PREFERENCES = "MyPreferences";
+    private static final String NAVIGATION_MENU_REFERENCE_FIREBASE = "flamelink/environments/production/navigation/noticeBoards/en-US/items";
 
     ExpandableListAdapter mFacultyMenuAdapter;
     ExpandableListAdapter mGeneralMenuAdapter;
@@ -55,10 +56,15 @@ public class NavigationMenuDataHandler {
     HashMap<ExpandedMenuModel, List<String>> navigationMenuChildList;
 
     public MenuEntryViewModel menuEntryViewModel;
-    private Activity mainActivity;
+    private Activity noticeBoardActivity;
 
-    public NavigationMenuDataHandler(Activity pMainActivity) {
-        mainActivity = pMainActivity;
+    /**
+     * Der Konstruktor.
+     *
+     * @param pActivity die Activity, in der der Handler erstellt wurde.
+     */
+    public NavigationMenuDataHandler(Activity pActivity) {
+        noticeBoardActivity = pActivity;
     }
 
     /**
@@ -66,19 +72,19 @@ public class NavigationMenuDataHandler {
      * Frägt von Firebase die Daten ab und Cached diese.
      */
     public void handleNavigationMenuData() {
-        facultyMenuExpandableList = (ExpandableListView) mainActivity.findViewById(R.id.navigationmenufaculty);
-        generalMenuExpandableList = (ExpandableListView) mainActivity.findViewById(R.id.navigationmenugeneral);
+        facultyMenuExpandableList = (ExpandableListView) noticeBoardActivity.findViewById(R.id.navigationmenufaculty);
+        generalMenuExpandableList = (ExpandableListView) noticeBoardActivity.findViewById(R.id.navigationmenugeneral);
 
         mDatabase = FirebaseDatabase.getInstance()
-                .getReference("flamelink/environments/production/navigation/noticeBoards/en-US/items");
+                .getReference(NAVIGATION_MENU_REFERENCE_FIREBASE);
 
-        menuEntryViewModel = ViewModelProviders.of((FragmentActivity) mainActivity).get(MenuEntryViewModel.class);
+        menuEntryViewModel = ViewModelProviders.of((FragmentActivity) noticeBoardActivity).get(MenuEntryViewModel.class);
 
         if (!_isNetworkAvailable()) {
             List<MenuEntry> storedMenuEntries = _fetchMenuEntries();
             if (storedMenuEntries != null) {
-                _prepareNavigationMenu(mainActivity.getString(R.string.facultyTopic), storedMenuEntries);
-                _prepareNavigationMenu(mainActivity.getString(R.string.generalTopic), storedMenuEntries);
+                _prepareNavigationMenu(noticeBoardActivity.getString(R.string.facultyTopic), storedMenuEntries);
+                _prepareNavigationMenu(noticeBoardActivity.getString(R.string.generalTopic), storedMenuEntries);
             }
         }
 
@@ -94,7 +100,7 @@ public class NavigationMenuDataHandler {
                     arrayList = (ArrayList<HashMap<String, String>>) dataSnapshot.getValue();
                     menuEntryViewModel.deleteAllMenuEntries();
                     _populateDatabase();
-                    menuEntryViewModel.getAllMenuEntries().observe((LifecycleOwner) mainActivity, new Observer<List<MenuEntry>>() {
+                    menuEntryViewModel.getAllMenuEntries().observe((LifecycleOwner) noticeBoardActivity, new Observer<List<MenuEntry>>() {
                         /**
                          * Falls sich Daten in der Firebase DB geändert haben wird diese Methode getriggert.
                          * @param menuEntries die neuen Menueinträge.
@@ -103,14 +109,18 @@ public class NavigationMenuDataHandler {
                         public void onChanged(@Nullable final List<MenuEntry> menuEntries) {
                             if (menuEntries != null && _isNetworkAvailable()) {
                                 _storeMenuEntries(menuEntries);
-                                _prepareNavigationMenu(mainActivity.getString(R.string.facultyTopic), menuEntries);
-                                _prepareNavigationMenu(mainActivity.getString(R.string.generalTopic), menuEntries);
+                                _prepareNavigationMenu(noticeBoardActivity.getString(R.string.facultyTopic), menuEntries);
+                                _prepareNavigationMenu(noticeBoardActivity.getString(R.string.generalTopic), menuEntries);
                             }
                         }
                     });
                 }
             }
 
+            /**
+             * nicht implementiert, daher keine Funktion.
+             * @param databaseError Fehlermeldung
+             */
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 //no implementation
@@ -120,15 +130,16 @@ public class NavigationMenuDataHandler {
 
     /**
      * Speichert die Menüeinträge als schared preference, damit der Menübaum auch ohne Netzwerk aufgebaut werden kann.
+     *
      * @param pMenuEntries die Menüeinträge.
      * @return true falls erfolgreich.
      */
     @SuppressLint("ApplySharedPref")
     private boolean _storeMenuEntries(List<MenuEntry> pMenuEntries) {
-        boolean returnValue = false;
+        boolean returnValue;
         SharedPreferences sharedPreferences;
         SharedPreferences.Editor editor;
-        sharedPreferences = mainActivity.getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences = noticeBoardActivity.getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
 
         Gson gson = new Gson();
         String json = gson.toJson(pMenuEntries);
@@ -142,11 +153,12 @@ public class NavigationMenuDataHandler {
 
     /**
      * Liefert die in den Shared Preferences gespeicherten Menüeinträge.
+     *
      * @return die Liste der Menüeinträge.
      */
     private List<MenuEntry> _fetchMenuEntries() {
         SharedPreferences sharedPreferences;
-        sharedPreferences = mainActivity.getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        sharedPreferences = noticeBoardActivity.getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
         if (sharedPreferences != null) {
             Gson gson = new Gson();
             String response = sharedPreferences.getString(MENU_ENTRY_STORE_KEY, "");
@@ -175,15 +187,15 @@ public class NavigationMenuDataHandler {
             for (Map.Entry<String, String> entry : hashMap.entrySet()) {
                 String key = String.valueOf(entry.getKey());
                 String value = String.valueOf(entry.getValue());
-                if (key.equals(mainActivity.getString(R.string.flamelinkNavigationId))) {
+                if (key.equals(noticeBoardActivity.getString(R.string.flamelinkNavigationId))) {
                     temp = (Long.parseLong(value));
                     id = temp.intValue();
                 }
-                if (key.equals(mainActivity.getString(R.string.flamelinkNavigationParentIndex))) {
+                if (key.equals(noticeBoardActivity.getString(R.string.flamelinkNavigationParentIndex))) {
                     temp = (Long.parseLong(value));
                     menuParentId = temp.intValue();
                 }
-                if (key.equals(mainActivity.getString(R.string.flamelinkNavigationTitle))) {
+                if (key.equals(noticeBoardActivity.getString(R.string.flamelinkNavigationTitle))) {
                     title = value;
                 }
             }
@@ -196,7 +208,8 @@ public class NavigationMenuDataHandler {
 
     /**
      * Bereitet das NavigationsMenü vor, indem es die ListViews mti Daten befüllt.
-     * @param pTopic das Topic welches hier befüllt werden soll (z.B. Fakultäten)
+     *
+     * @param pTopic       das Topic welches hier befüllt werden soll (z.B. Fakultäten)
      * @param pMenuEntries alle Menüeinträge
      */
     private void _prepareNavigationMenu(String pTopic, List<MenuEntry> pMenuEntries) {
@@ -245,12 +258,12 @@ public class NavigationMenuDataHandler {
             }
             navigationMenuChildList.put(expandedMenuModel, childsToAdd);
         }
-        if (pTopic.equals(mainActivity.getString(R.string.facultyTopic))) {
-            mFacultyMenuAdapter = new ExpandableListAdapter(mainActivity, navigationMenuParentList, navigationMenuChildList, facultyMenuExpandableList);
+        if (pTopic.equals(noticeBoardActivity.getString(R.string.facultyTopic))) {
+            mFacultyMenuAdapter = new ExpandableListAdapter(noticeBoardActivity, navigationMenuParentList, navigationMenuChildList, facultyMenuExpandableList);
             facultyMenuExpandableList.setAdapter(mFacultyMenuAdapter);
         } else {
-            if (pTopic.equals(mainActivity.getString(R.string.generalTopic))) {
-                mGeneralMenuAdapter = new ExpandableListAdapter(mainActivity, navigationMenuParentList, navigationMenuChildList, generalMenuExpandableList);
+            if (pTopic.equals(noticeBoardActivity.getString(R.string.generalTopic))) {
+                mGeneralMenuAdapter = new ExpandableListAdapter(noticeBoardActivity, navigationMenuParentList, navigationMenuChildList, generalMenuExpandableList);
                 generalMenuExpandableList.setAdapter(mGeneralMenuAdapter);
             }
         }
@@ -290,7 +303,7 @@ public class NavigationMenuDataHandler {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
-                mainActivity.setTitle(AnnouncementTopic.getTopic());
+                noticeBoardActivity.setTitle(AnnouncementTopic.getTopic());
                 return false;
             }
         });
@@ -308,7 +321,7 @@ public class NavigationMenuDataHandler {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
-                mainActivity.setTitle(AnnouncementTopic.getTopic());
+                noticeBoardActivity.setTitle(AnnouncementTopic.getTopic());
                 return false;
             }
         });
@@ -316,11 +329,12 @@ public class NavigationMenuDataHandler {
 
     /**
      * Checkt auf Netzwer Verfügbarkeit
+     *
      * @return true falls verfügbar.
      */
     private boolean _isNetworkAvailable() {
         ConnectivityManager connectivityManager
-                = (ConnectivityManager) mainActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+                = (ConnectivityManager) noticeBoardActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }

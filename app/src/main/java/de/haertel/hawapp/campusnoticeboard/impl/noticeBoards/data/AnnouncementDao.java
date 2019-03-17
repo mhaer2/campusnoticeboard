@@ -11,11 +11,14 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Data Access Object, for access to announcements.
+ */
 @Dao
 public interface AnnouncementDao {
 
     @Insert
-    void insert (Announcement announcement);
+    void insert(Announcement announcement);
 
     @Update
     void update(Announcement announcement);

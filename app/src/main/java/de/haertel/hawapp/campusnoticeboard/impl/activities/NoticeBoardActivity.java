@@ -1,9 +1,7 @@
-package de.haertel.hawapp.campusnoticeboard.impl;
+package de.haertel.hawapp.campusnoticeboard.impl.activities;
 
 import android.app.ActivityManager;
 import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
@@ -69,7 +67,24 @@ import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 import static de.haertel.hawapp.campusnoticeboard.impl.BaseApp.CHANNEL_1_ID;
 
 
-public class NoticeBoardMainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+/**
+ * Activity für die Hauptansicht der Anwendung. Sie stellt een Schwarzes Brett dar
+ */
+public class NoticeBoardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private final static String PREF_PREFIX = "Pref";
+    private final static String ANNOUNCEMENT_BOARD = "AnnouncementBoard";
+    private final static String USERNAME = "Username";
+    private final static String PUSHENABLED = "PushEnabled";
+    private final static String DEFAULT_VALUE_BOARD = "none";
+    private final static String FIREBASE_REFERENCE = "flamelink/environments/production/content/announcements/en-US";
+    private static final String HEADLINE = "headline";
+    private static final String AUTHOR = "author";
+    private static final String MESSAGE = "message";
+    private static final String NOTICEBOARD = "noticeboard";
+    private static final String DATE = "date";
+    private final static String LOGOUT_ACTION = "de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT";
+    private static final String PATTERN = "yyyy-MM-dd'T'HH:mm";
+
     private DrawerLayout drawer;
     public static AnnouncementViewModel announcementViewModel;
     private SharedPreferences sharedPreferences;
@@ -81,20 +96,27 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     private AnnouncementAdapter announcementAdapter;
 
+    /**
+     * Holt sich alle Buttons und Views der Settings und befüllt sie mit Funktionen.
+     * Initialisiert den NavigationDrawer und befüllt ihn mit Funktionen.
+     * Befüllt die Listen mit den LiveDaten der Datenbank.
+     *
+     * @param savedInstanceState Bundle mit gespeichertem Zustand
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_notice_board_main);
+        setContentView(R.layout.activity_notice_board);
 
         _addLogoutReceiver();
 
         mDatabase = FirebaseDatabase.getInstance()
-                .getReference("flamelink/environments/production/content/announcements/en-US");
+                .getReference(FIREBASE_REFERENCE);
 
         String currentUser = CurrentUser.getUsername();
-        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
-        String userName = userPref.getString("Username", "none");
-        announcementBoard = userPref.getString("AnnouncementBoard", "none");
+        SharedPreferences userPref = getSharedPreferences(currentUser + PREF_PREFIX, MODE_PRIVATE);
+        String userName = userPref.getString(USERNAME, DEFAULT_VALUE_BOARD);
+        announcementBoard = userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD);
 
         notificationManager = NotificationManagerCompat.from(this);
 
@@ -117,6 +139,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         toggleButton.syncState();
 
 
+        //Recycler View für die anzeige der Previews im Schwarzen Brett
         RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         announcementAdapter = new AnnouncementAdapter();
@@ -128,25 +151,23 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if (FirstStart.isFirstStart()) {
-                    if (evt.getOldValue().equals("none")) {
+                    //Falls noch nicht initialisiert
+                    if (evt.getOldValue().equals(DEFAULT_VALUE_BOARD)) {
                         FirstStart.setFirstStart(false);
-
                         sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.remove(getString(R.string.lastInsert));
                         editor.putLong(getString(R.string.lastInsert), LastInsert.getLastInsert().getTime()).apply();
-
                         editor.putBoolean(getString(R.string.preferenceKeyFirstStart), false);
                         editor.apply();
                         _addNewDatabaseEntryListener();
                     }
                 }
 
-                announcementViewModel.getAllAnnouncementsForTopic(AnnouncementTopic.getTopic()).observe(NoticeBoardMainActivity.this, new Observer<List<Announcement>>() {
+                announcementViewModel.getAllAnnouncementsForTopic(AnnouncementTopic.getTopic()).observe(NoticeBoardActivity.this, new Observer<List<Announcement>>() {
                     @Override
                     public void onChanged(@Nullable List<Announcement> pAnnouncements) {
                         announcementAdapter.setAnnouncements(pAnnouncements);
-
                         if (drawer.isDrawerOpen(GravityCompat.START)) {
                             drawer.closeDrawer(GravityCompat.START);
                         }
@@ -163,7 +184,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         announcementAdapter.setOnItemClickListener(new AnnouncementAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Announcement announcement) {
-                Intent intent = new Intent(NoticeBoardMainActivity.this, DetailViewActivity.class);
+                Intent intent = new Intent(NoticeBoardActivity.this, DetailViewActivity.class);
                 intent.putExtra(DetailViewActivity.EXTRA_ID, announcement.getId());
                 intent.putExtra(DetailViewActivity.EXTRA_HEADLINE, announcement.getHeadline());
                 intent.putExtra(DetailViewActivity.EXTRA_AUTHOR, announcement.getAuthor());
@@ -184,10 +205,11 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         } else {
             // Ansonsten Default-Topic einstellen.
             _performActionForDatabaseInit();
-            AnnouncementTopic.setTopic(userPref.getString("AnnouncementBoard", "none"));
+            AnnouncementTopic.setTopic(userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD));
             _addNewDatabaseEntryListener();
         }
 
+        // initialisieren des Navigation-Views
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         ViewGroup navigationViewHeader = (ViewGroup) navigationView.getHeaderView(0);
         View parentView = navigationViewHeader.getRootView();
@@ -197,7 +219,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             @Override
             public void onClick(View v) {
                 AnnouncementTopic.setTopic(announcementBoard);
-                NoticeBoardMainActivity.this.setTitle(announcementBoard);
+                NoticeBoardActivity.this.setTitle(announcementBoard);
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START);
                 }
@@ -215,39 +237,49 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
+    /**
+     * OnStart methode der Activity
+     */
     @Override
     protected void onStart() {
         super.onStart();
         _setNavigationHeaderButtonText();
     }
 
+    /**
+     * OnResume Methode der Activity.
+     * setzt das Topic der Announcements und den Titel der Toolbar.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         if (!FirstStart.isFirstStart()) {
-            SharedPreferences currentUserPref = getSharedPreferences(CurrentUser.getUsername() + "Pref", MODE_PRIVATE);
-            AnnouncementTopic.initTopic(currentUserPref.getString("AnnouncementBoard", "none"));
+            SharedPreferences currentUserPref = getSharedPreferences(CurrentUser.getUsername() + PREF_PREFIX, MODE_PRIVATE);
+            AnnouncementTopic.initTopic(currentUserPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD));
         }
         this.setTitle(AnnouncementTopic.getTopic());
         _setNavigationHeaderButtonText();
     }
 
 
+    /**
+     * Ändert den ButtonText des Buttons auf das aktuelle Topic, der immer auf das Default Department lenk.
+     */
     private void _setNavigationHeaderButtonText() {
         String currentUser = CurrentUser.getUsername();
-        final SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+        final SharedPreferences userPref = getSharedPreferences(currentUser + PREF_PREFIX, MODE_PRIVATE);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         ViewGroup navigationViewHeader = (ViewGroup) navigationView.getHeaderView(0);
         View parentView = navigationViewHeader.getRootView();
         Button navigationHeaderDefaultDepartmentButton = (Button) parentView.findViewById(R.id.navigation_header_defaultDepartment_button);
-        navigationHeaderDefaultDepartmentButton.setText(userPref.getString("AnnouncementBoard", "none"));
+        navigationHeaderDefaultDepartmentButton.setText(userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD));
 
         navigationHeaderDefaultDepartmentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AnnouncementTopic.setTopic(userPref.getString("AnnouncementBoard", "none"));
-                NoticeBoardMainActivity.this.setTitle(userPref.getString("AnnouncementBoard", "none"));
+                AnnouncementTopic.setTopic(userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD));
+                NoticeBoardActivity.this.setTitle(userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD));
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START);
                 }
@@ -262,15 +294,17 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
      * Daher wird ein Insert mit nachfolgendem Delete eines DummyEntrys durchgeführt.
      */
     private void _performActionForDatabaseInit() {
-
-
-        Announcement initEntry = new Announcement("none", "none", "none", new Date(), "none");
+        Announcement initEntry = new Announcement(DEFAULT_VALUE_BOARD, DEFAULT_VALUE_BOARD, DEFAULT_VALUE_BOARD, new Date(), DEFAULT_VALUE_BOARD);
         announcementViewModel.insert(initEntry);
         announcementViewModel.delete(initEntry);
     }
 
+    /**
+     * Hinzufügen eines Listener zum Drawer, der den Drawer schließt wenn auf ein Item geklickt wird
+     *
+     * @param navigationView die View mit den Items
+     */
     private void setupDrawerContent(NavigationView navigationView) {
-        //revision: this don't works, use setOnChildClickListener() and setOnGroupClickListener() above instead
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -299,6 +333,12 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
+    /**
+     * Erzeugen des OptionMenüs.
+     *
+     * @param menu das Menu
+     * @return true wenn erfolgreich.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -306,6 +346,12 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         return true;
     }
 
+    /**
+     * Legt fest, was beim Klicken auf die Icons in der Toolbar.
+     *
+     * @param item das MenüItem auf das geklickt wurde
+     * @return true wenn Item selected
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -313,7 +359,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.open_settings:
-                Intent intent = new Intent(NoticeBoardMainActivity.this, SettingsActivity.class);
+                Intent intent = new Intent(NoticeBoardActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
 
@@ -323,11 +369,23 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
+    /**
+     * nicht implementiert
+     *
+     * @param menuItem das Item
+     * @return immer False
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         return false;
     }
 
+
+    /**
+     * Fügt einen Listener hinzu, der darauf horcht, ob neue Einträge zur Datenbank hinzugefügt worden sind.
+     * Falls neue Einträge in Firebase gemacht wurden, werden sie auch in die SQLite DB gespeichert.
+     * Falls ein neuer Eintrag gemacht wurde und Push aktiviert ist wird eine Notification losgesendet.
+     */
     private void _addNewDatabaseEntryListener() {
 
         if (childEventListener != null) {
@@ -335,18 +393,23 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         }
 
         childEventListener = mDatabase.addChildEventListener(new ChildEventListener() {
+            /**
+             * Aufgerufen wenn ein Kind hinzugefügt wurde.
+             *
+             * @param dataSnapshot der Snapschot der Daten
+             * @param s der key
+             */
             @Override
             @SuppressWarnings("unchecked")
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
 
-                String pattern = "yyyy-MM-dd'T'HH:mm";
-                DateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+                DateFormat dateFormat = new SimpleDateFormat(PATTERN, Locale.getDefault());
                 dateFormat.setTimeZone(TimeZone.getDefault());
                 Map<String, String> map = (Map) dataSnapshot.getValue();
 
                 Date dateOfNewInsert = null;
                 try {
-                    dateOfNewInsert = dateFormat.parse(Objects.requireNonNull(map).get("date"));
+                    dateOfNewInsert = dateFormat.parse(Objects.requireNonNull(map).get(DATE));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -360,10 +423,10 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                 Date lastInsert = cal.getTime();//LastInsert.getLastInsert();
 
                 if (Objects.requireNonNull(dateOfNewInsert).after(lastInsert)) {
-                    String authorOfNewInsert = map.get("author");
-                    String headlineOfNewInsert = map.get("headline");
-                    String messageOfNewInsert = map.get("message");
-                    String noticeboardOfNewInsert = map.get("noticeboard");
+                    String authorOfNewInsert = map.get(AUTHOR);
+                    String headlineOfNewInsert = map.get(HEADLINE);
+                    String messageOfNewInsert = map.get(MESSAGE);
+                    String noticeboardOfNewInsert = map.get(NOTICEBOARD);
                     Announcement newInsert = new Announcement
                             (headlineOfNewInsert, authorOfNewInsert, messageOfNewInsert, dateOfNewInsert, noticeboardOfNewInsert);
                     new InsertNewEntryAsyncTask(announcementViewModel).execute(newInsert);
@@ -375,25 +438,43 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     editor.putLong(getString(R.string.lastInsert), new Date().getTime()).apply();
                     LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
 
-                    sendOnChannel1(headlineOfNewInsert, messageOfNewInsert);
+
+                    SharedPreferences currentUserPref = getSharedPreferences(CurrentUser.getUsername() + PREF_PREFIX, MODE_PRIVATE);
+
+                    if (currentUserPref.getBoolean(PUSHENABLED, true)) {
+                        sendOnChannel1(headlineOfNewInsert, messageOfNewInsert);
+                    }
+
                 }
             }
 
+            /**
+             * nicht implementiert
+             */
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
             }
 
+            /**
+             * nicht implementiert
+             */
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
 
             }
 
+            /**
+             * nicht implementiert
+             */
             @Override
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
             }
 
+            /**
+             * nicht implementiert
+             */
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -403,14 +484,27 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
-
+    /**
+     * Asynchroner Task, der das Insert ausführt wenn ein neuer Eintrag gemacht wurde
+     */
     private static class InsertNewEntryAsyncTask extends AsyncTask<Announcement, Void, Void> {
         private AnnouncementViewModel announcementViewModel;
 
+        /**
+         * Konstruktor
+         *
+         * @param pAnnouncementViewModel das ViewModel
+         */
         private InsertNewEntryAsyncTask(AnnouncementViewModel pAnnouncementViewModel) {
             announcementViewModel = pAnnouncementViewModel;
         }
 
+        /**
+         * Führt den Insert aus
+         *
+         * @param pAnnouncements die Bekanntmachung
+         * @return void
+         */
         @Override
         protected Void doInBackground(Announcement... pAnnouncements) {
             announcementViewModel.insert(pAnnouncements[0]);
@@ -418,21 +512,26 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         }
     }
 
+    /**
+     * Entfernt den Listener beim Zerstören der Activity.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mDatabase.removeEventListener(childEventListener);
     }
 
-
+    /**
+     * Sendet die Push Benachrichtigung los.
+     *
+     * @param pTitle   den Titel der Nachricht.
+     * @param pMessage die Message der Nachricht.
+     */
     public void sendOnChannel1(String pTitle, String pMessage) {
-        String title = pTitle;
-        String message = pMessage;
-
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
                 .setSmallIcon(R.mipmap.ic_logo_round)
-                .setContentTitle(title)
-                .setContentText(message)
+                .setContentTitle(pTitle)
+                .setContentText(pMessage)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .build();
@@ -458,15 +557,15 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         return false;
     }
 
-
+    /**
+     * Fügt einen BroadcastReceiver hinzu, der die Anwendung beim Logout beendet, falls sie noch im Stack ist.
+     */
     private void _addLogoutReceiver() {
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        intentFilter.addAction(LOGOUT_ACTION);
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("onReceive", "Logout in progress");
-                //At this point you should start the login activity and finish this one
                 finish();
             }
         }, intentFilter);

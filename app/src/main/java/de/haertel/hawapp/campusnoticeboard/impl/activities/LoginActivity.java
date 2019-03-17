@@ -1,4 +1,4 @@
-package de.haertel.hawapp.campusnoticeboard.impl;
+package de.haertel.hawapp.campusnoticeboard.impl.activities;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -25,7 +25,8 @@ import de.haertel.hawapp.campusnoticeboard.util.FirstStart;
 import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
 /**
- * A login screen that offers login via email/password.
+ * A login screen that offers login via username.
+ * Basic Android Activity just edited for custom behaviour.
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,14 +35,28 @@ public class LoginActivity extends AppCompatActivity {
      */
     private UserLoginTask mAuthTask = null;
 
-    // UI references.
     private EditText mUsernameView;
     private View mLoginFormView;
     private final static String MARTIN = "Martin";
     private final static String KHELIL = "Khelil";
     private final static String JUSTUS = "Justus";
+    private final static String IOT = "IoT";
+    private final static String IFM_SC = "Informatik, M.Sc.";
+    private final static String BWL_BSC = "Betriebswirtschaft, B.Sc.";
+    private final static String PREF_PREFIX = "Pref";
+    private final static String ANNOUNCEMENT_BOARD = "AnnouncementBoard";
+    private final static String USERNAME = "Username";
+    private final static String PUSHENABLED = "PushEnabled";
+    private final static String DEFAULT_VALUE_BOARD = "none";
+    private final static String LOGOUT_ACTION = "de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT";
 
 
+    /**
+     * In der Methode werden User als SharedPreferences angelegt, falls sie das noch nicht sind.
+     * Zudem werden die Komponenten für das Login zugewiesen.
+     *
+     * @param savedInstanceState savedInstanceState Bundle mit gespeichertem Zustand
+     */
     @SuppressLint("ApplySharedPref")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +79,8 @@ public class LoginActivity extends AppCompatActivity {
             LastInsert.setLastInsert(date);
         }
 
-
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
-
 
         Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
         mSignInButton.setOnClickListener(new OnClickListener() {
@@ -80,28 +93,34 @@ public class LoginActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_form);
     }
 
+    /**
+     * Legt die SharedPreferences für die 3 möglichen User an. und weißt ihnen Topics zu.
+     *
+     * @param pUsername der Name des Users
+     */
     private void _createSharedPref(String pUsername) {
 
-        String board = "IoT";
+
+        String board = IOT;
         switch (pUsername) {
             case MARTIN:
-                board = "Informatik, M.Sc.";
+                board = IFM_SC;
                 break;
             case KHELIL:
-                board = "IoT";
+                board = IOT;
                 break;
             case JUSTUS:
-                board = "Betriebswirtschaft, B.Sc.";
+                board = BWL_BSC;
                 break;
         }
         SharedPreferences sharedPreferences;
         SharedPreferences.Editor editor;
-        sharedPreferences = getSharedPreferences(pUsername + "Pref", Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(pUsername + PREF_PREFIX, Context.MODE_PRIVATE);
 
         editor = sharedPreferences.edit();
-        editor.putString("Username", pUsername);
-        editor.putBoolean("PushEnabled", true);
-        editor.putString("AnnouncementBoard", board);
+        editor.putString(USERNAME, pUsername);
+        editor.putBoolean(PUSHENABLED, true);
+        editor.putString(ANNOUNCEMENT_BOARD, board);
         editor.apply();
 
     }
@@ -125,7 +144,7 @@ public class LoginActivity extends AppCompatActivity {
         boolean cancel = false;
         View focusView = null;
 
-        if (!(username.equals(MARTIN) || username.equals(KHELIL) || username.equals(JUSTUS))){
+        if (!(username.equals(MARTIN) || username.equals(KHELIL) || username.equals(JUSTUS))) {
             mUsernameView.setError(getString(R.string.error_incorrect_username));
             focusView = mUsernameView;
             cancel = true;
@@ -154,20 +173,37 @@ public class LoginActivity extends AppCompatActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
+    @SuppressLint("StaticFieldLeak")
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mUsername;
 
+        /**
+         * Konstruktor
+         *
+         * @param email username
+         */
         UserLoginTask(String email) {
             mUsername = email;
         }
 
+        /**
+         * not implementet
+         *
+         * @param params void
+         * @return always true
+         */
         @Override
         protected Boolean doInBackground(Void... params) {
-
             return true;
         }
 
+        /**
+         * Nach erfolgreicher Authentifizierung wird das Schwarze Brett geladen.
+         * Hierfür werden Einstellungen aus den Shared Preferences geladen und gesetzt.
+         *
+         * @param success
+         */
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
@@ -175,11 +211,11 @@ public class LoginActivity extends AppCompatActivity {
             if (success) {
                 CurrentUser.setUsername(mUsername);
                 if (FirstStart.isFirstStart()) {
-                    SharedPreferences userPref = getSharedPreferences(mUsername + "Pref", MODE_PRIVATE);
-                    announcementBoard = userPref.getString("AnnouncementBoard", "none");
+                    SharedPreferences userPref = getSharedPreferences(mUsername + PREF_PREFIX, MODE_PRIVATE);
+                    announcementBoard = userPref.getString(ANNOUNCEMENT_BOARD, DEFAULT_VALUE_BOARD);
                     AnnouncementTopic.setTopic(announcementBoard);
                 }
-                Intent myIntent = new Intent(LoginActivity.this, NoticeBoardMainActivity.class);
+                Intent myIntent = new Intent(LoginActivity.this, NoticeBoardActivity.class);
                 LoginActivity.this.startActivity(myIntent);
 
                 finish();
@@ -189,19 +225,24 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
 
+        /**
+         * setzt AuthentifizierungsTask auf null
+         */
         @Override
         protected void onCancelled() {
             mAuthTask = null;
         }
     }
-    private void _addLogoutReceiver(){
+
+    /**
+     * Fügt einen BroadcastReceiver hinzu, der die Anwendung beim Logout beendet, falls sie noch im Stack ist.
+     */
+    private void _addLogoutReceiver() {
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        intentFilter.addAction(LOGOUT_ACTION);
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("onReceive","Logout in progress");
-                //At this point you should start the login activity and finish this one
                 finish();
             }
         }, intentFilter);

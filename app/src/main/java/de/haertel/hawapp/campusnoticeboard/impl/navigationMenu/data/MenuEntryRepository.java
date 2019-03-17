@@ -15,7 +15,12 @@ public class MenuEntryRepository {
     private MenuEntryDao menuEntryDao;
     private LiveData<List<MenuEntry>> allMenuEntries;
 
-    public MenuEntryRepository(Application pApplication){
+    /**
+     * Konstruktor des Repositories.
+     *
+     * @param pApplication das Applikation-Objekt
+     */
+    MenuEntryRepository(Application pApplication) {
         database = MenuEntryDatabase.getInstance(pApplication);
         menuEntryDao = database.menuEntryDao();
         allMenuEntries = menuEntryDao.getAllMenuEntries();
@@ -24,37 +29,44 @@ public class MenuEntryRepository {
 
     /**
      * Ruft einen Asynchronen Task auf der den Insert vornimmt.
+     *
      * @param pMenuEntry der Menüeintrag
      */
-    public void insert(MenuEntry pMenuEntry){
+    public void insert(MenuEntry pMenuEntry) {
         new InsertMenuEntryAsyncTask(menuEntryDao).execute(pMenuEntry);
     }
+
     /**
      * Ruft einen Asynchronen Task auf der das Update vornimmt.
+     *
      * @param pMenuEntry der Menüeintrag
      */
-    public void update(MenuEntry pMenuEntry){
+    void update(MenuEntry pMenuEntry) {
         new UpdateMenuEntryAsyncTask(menuEntryDao).execute(pMenuEntry);
     }
+
     /**
      * Ruft einen Asynchronen Task auf der das Delete vornimmt.
+     *
      * @param pMenuEntry der Menüeintrag
      */
-    public void delete(MenuEntry pMenuEntry){
+    public void delete(MenuEntry pMenuEntry) {
         new DeleteMenuEntryAsyncTask(menuEntryDao).execute(pMenuEntry);
     }
+
     /**
      * Ruft einen Asynchronen Task auf der alle Datensätze löscht vornimmt.
      */
-    public void deleteAllMenuEntries(){
+    void deleteAllMenuEntries() {
         new DeleteAllMenuEntryAsyncTask(menuEntryDao).execute();
     }
 
     /**
      * Ruft einen Asynchronen Task auf der alle Datensätze liefert.
+     *
      * @return alle Einträge als Live Daten.
      */
-    public LiveData<List<MenuEntry>> getAllMenuEntries(){
+    LiveData<List<MenuEntry>> getAllMenuEntries() {
         return allMenuEntries;
     }
 
@@ -64,9 +76,10 @@ public class MenuEntryRepository {
     private static class InsertMenuEntryAsyncTask extends AsyncTask<MenuEntry, Void, Void> {
         private MenuEntryDao menuEntryDao;
 
-        private InsertMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao){
+        private InsertMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao) {
             menuEntryDao = pMenuEntryDao;
         }
+
         @Override
         protected Void doInBackground(MenuEntry... pMenuEntries) {
             menuEntryDao.insert(pMenuEntries[0]);
@@ -80,9 +93,10 @@ public class MenuEntryRepository {
     private static class UpdateMenuEntryAsyncTask extends AsyncTask<MenuEntry, Void, Void> {
         private MenuEntryDao menuEntryDao;
 
-        private UpdateMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao){
+        private UpdateMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao) {
             menuEntryDao = pMenuEntryDao;
         }
+
         @Override
         protected Void doInBackground(MenuEntry... pMenuEntries) {
             menuEntryDao.update(pMenuEntries[0]);
@@ -96,9 +110,10 @@ public class MenuEntryRepository {
     private static class DeleteMenuEntryAsyncTask extends AsyncTask<MenuEntry, Void, Void> {
         private MenuEntryDao menuEntryDao;
 
-        private DeleteMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao){
+        private DeleteMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao) {
             menuEntryDao = pMenuEntryDao;
         }
+
         @Override
         protected Void doInBackground(MenuEntry... pMenuEntries) {
             menuEntryDao.delete(pMenuEntries[0]);
@@ -112,9 +127,10 @@ public class MenuEntryRepository {
     private static class DeleteAllMenuEntryAsyncTask extends AsyncTask<Void, Void, Void> {
         private MenuEntryDao menuEntryDao;
 
-        private DeleteAllMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao){
+        private DeleteAllMenuEntryAsyncTask(MenuEntryDao pMenuEntryDao) {
             menuEntryDao = pMenuEntryDao;
         }
+
         @Override
         protected Void doInBackground(Void... voids) {
             menuEntryDao.deleteAllMenuEntries();
