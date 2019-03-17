@@ -1,5 +1,6 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,6 +8,7 @@ import android.app.PendingIntent;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -447,28 +449,69 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private void _showNotification(String pTitle, String pMessage) {
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("default",
-                    "YOUR_CHANNEL_NAME",
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DISCRIPTION");
-            mNotificationManager.createNotificationChannel(channel);
-        }
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
-                .setSmallIcon(R.mipmap.ic_logo_round) // notification icon
-                .setContentTitle(pTitle) // title for notification
-                .setContentText(pMessage)// message for notification
-                //.setSound(alarmSound) // set alarm sound for notification
-                .setAutoCancel(true); // clear notification after click
-        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(pi);
-        mNotificationManager.notify(0, mBuilder.build());
-    }
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+//            NotificationChannel channel = new NotificationChannel("default",
+//                    "YOUR_CHANNEL_NAME",
+//                    NotificationManager.IMPORTANCE_DEFAULT);
+//            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DISCRIPTION");
+//            mNotificationManager.createNotificationChannel(channel);
+//        }
+//        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
+//                .setSmallIcon(R.mipmap.ic_logo_round) // notification icon
+//                .setContentTitle(pTitle) // title for notification
+//                .setContentText(pMessage)// message for notification
+//                //.setSound(alarmSound) // set alarm sound for notification
+//                .setAutoCancel(true); // clear notification after click
+//        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+//        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        mBuilder.setContentIntent(pi);
+//        mNotificationManager.notify(0, mBuilder.build());
+        Notification notification;
+        PendingIntent contentIntent = PendingIntent.getActivity(NoticeBoardMainActivity.this, 0,
+                new Intent(NoticeBoardMainActivity.this, NoticeBoardMainActivity.class), 0);
 
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                NoticeBoardMainActivity.this);
+        notification = builder.setContentIntent(contentIntent)
+                .setSmallIcon(R.mipmap.ic_logo_round).setTicker(getString(R.string.app_name)).setWhen(0)
+                .setAutoCancel(true).setContentTitle(getString(R.string.app_name))
+                .setContentTitle(pTitle)
+                .setContentText(pMessage).build();
+
+        notificationManager.notify(0 , notification);
+    }
+    /**
+     * Checks if the application is being sent in the background (i.e behind
+     * another application's Activity).
+     *
+     * @param context the context
+     * @return <code>true</code> if another application will be above this one.
+     */
+    public static boolean isApplicationSentToBackground(final Context context) {
+        ActivityManager am = (ActivityManager)    context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(context.getPackageName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     private void _setToolbarTitle(String pTitle) {
         NoticeBoardMainActivity.this.setTitle(pTitle);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isApplicationSentToBackground(NoticeBoardMainActivity.this)){
+            _showNotification("Test aus onpause", "messeage aus onpause");
+        }
+    }
+
     private void _addLogoutReceiver(){
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
