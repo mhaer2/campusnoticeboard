@@ -36,30 +36,27 @@
             android:id="@+id/navigation_header_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/black"
-            android:maxLines="1"
             android:ellipsize="end"
-            android:textStyle="bold"
-            android:text="Martin"
+            android:maxLines="1"
+            android:shadowColor="@color/black"
             android:textColor="@color/white"
-            android:textSize="20dp" />
+            android:textSize="@dimen/nav_header_username_textsize"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/navigation_header_defaultDepartment_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
             android:background="@android:color/transparent"
-            android:textAllCaps="false"
-            android:text="Informatik, B.Sc."
-            android:maxLines="2"
+            android:drawableEnd="@drawable/ic_arrow_forward"
             android:drawablePadding="@dimen/button_padding_between"
             android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="18sp"
-            android:drawableEnd="@drawable/ic_arrow_forward"
-            />
+            android:textSize="18sp" />
     </LinearLayout>
 
 

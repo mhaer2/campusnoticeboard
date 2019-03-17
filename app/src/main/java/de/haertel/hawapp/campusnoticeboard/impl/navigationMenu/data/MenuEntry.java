@@ -4,6 +4,10 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
+/**
+ * Simple POJO as Entity, for saving Menu Entries to the SQLite Database in this structur.
+ */
+
 @Entity(tableName = "menuEntry_table")
 public class MenuEntry {
 
@@ -17,7 +21,7 @@ public class MenuEntry {
     @ColumnInfo(name = "title")
     private String title;
 
-    public MenuEntry(int id, int menuParentId, String title) {
+    MenuEntry(int id, int menuParentId, String title) {
         this.id = id;
         this.menuParentId = menuParentId;
         this.title = title;

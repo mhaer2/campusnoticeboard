@@ -8,8 +8,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:context="de.haertel.hawapp.campusnoticeboard.impl.NoticeBoardMainActivity"
-    tools:openDrawer="start"
-    >
+    tools:openDrawer="start">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,7 +22,7 @@
             android:background="@color/colorPrimary"
             android:elevation="4dp"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
         </android.support.v7.widget.Toolbar>
 
@@ -31,8 +30,8 @@
             android:id="@+id/announcement_preview_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/announcement_item"
-            android:background="@color/black"/>
+            android:background="@color/black"
+            tools:listitem="@layout/announcement_item" />
 
     </LinearLayout>
 
@@ -41,22 +40,21 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/navigation_drawer_header"
-        >
+        app:headerLayout="@layout/navigation_drawer_header">
+
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:orientation="vertical"
             android:layout_marginTop="@dimen/navigation_header_height"
-            android:background="@color/colorGreyLightest">
+            android:background="@color/colorGreyLightest"
+            android:orientation="vertical">
 
-            <ScrollView
-                xmlns:android="http://schemas.android.com/apk/res/android"
+            <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/scrollViewDrawer"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:fillViewport="true"
-                >
+                android:fillViewport="true">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -65,13 +63,13 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="6dp"
-                        android:textColor="@color/white"
+                        android:background="@color/black"
                         android:clickable="false"
                         android:focusable="false"
-                        android:background="@color/black"
-                        android:textSize="@dimen/navigationMenu_topic_header_textSize"
-                        android:text="@string/facultyTopic"/>
+                        android:padding="6dp"
+                        android:text="@string/facultyTopic"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/navigationMenu_topic_header_textSize" />
 
                     <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenufaculty"
@@ -84,13 +82,13 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="6dp"
-                        android:textColor="@color/white"
+                        android:background="@color/black"
                         android:clickable="false"
                         android:focusable="false"
-                        android:background="@color/black"
-                        android:textSize="@dimen/navigationMenu_topic_header_textSize"
-                        android:text="@string/generalTopic"/>
+                        android:padding="6dp"
+                        android:text="@string/generalTopic"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/navigationMenu_topic_header_textSize" />
 
                     <de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.NestedListView
                         android:id="@+id/navigationmenugeneral"
@@ -103,7 +101,6 @@
             </ScrollView>
         </LinearLayout>
 
-        <!--</LinearLayout>-->
     </android.support.design.widget.NavigationView>
 
 

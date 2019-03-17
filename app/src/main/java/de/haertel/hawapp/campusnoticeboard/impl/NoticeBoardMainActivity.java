@@ -2,7 +2,6 @@ package de.haertel.hawapp.campusnoticeboard.impl;
 
 import android.app.ActivityManager;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.arch.lifecycle.Observer;
@@ -80,7 +79,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private ChildEventListener childEventListener;
     private NotificationManagerCompat notificationManager;
 
-    private RecyclerView recyclerView;
     private AnnouncementAdapter announcementAdapter;
 
     @Override
@@ -119,7 +117,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         toggleButton.syncState();
 
 
-        recyclerView = findViewById(R.id.announcement_preview_recycler_view);
+        RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         announcementAdapter = new AnnouncementAdapter();
         recyclerView.setAdapter(announcementAdapter);
@@ -135,8 +133,8 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
                         sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.remove(getString(R.string.lastInsert)).commit();
-                        editor.putLong(getString(R.string.lastInsert), LastInsert.getLastInsert().getTime()).commit();
+                        editor.remove(getString(R.string.lastInsert));
+                        editor.putLong(getString(R.string.lastInsert), LastInsert.getLastInsert().getTime()).apply();
 
                         editor.putBoolean(getString(R.string.preferenceKeyFirstStart), false);
                         editor.apply();
@@ -206,9 +204,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             }
         });
 
-        if (navigationView != null) {
-            setupDrawerContent(navigationView);
-        }
+        setupDrawerContent(navigationView);
         NavigationMenuDataHandler navigationMenuDataHandler = new NavigationMenuDataHandler(this);
         navigationMenuDataHandler.handleNavigationMenuData();
         navigationMenuDataHandler.initNavigationListListener();
@@ -278,7 +274,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         menuItem.setChecked(true);
                         drawer.closeDrawers();
                         return true;
@@ -318,7 +314,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         switch (item.getItemId()) {
             case R.id.open_settings:
                 Intent intent = new Intent(NoticeBoardMainActivity.this, SettingsActivity.class);
-                //intent.putExtra(SettingsActivity.EXTRA_ANNOUNCEMENT_VIEW_MODEL, this);
                 startActivity(intent);
                 return true;
 
@@ -377,11 +372,10 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                     SharedPreferences shared = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
                     SharedPreferences.Editor editor = shared.edit();
                     editor.remove(getString(R.string.lastInsert));
-                    editor.putLong(getString(R.string.lastInsert), new Date().getTime()).commit();
+                    editor.putLong(getString(R.string.lastInsert), new Date().getTime()).apply();
                     LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
 
                     sendOnChannel1(headlineOfNewInsert, messageOfNewInsert);
-                    //_showNotification(headlineOfNewInsert, messageOfNewInsert);
                 }
             }
 
@@ -446,41 +440,6 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         notificationManager.notify(1, notification);
     }
 
-    private void _showNotification(String pTitle, String pMessage) {
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-//            NotificationChannel channel = new NotificationChannel("default",
-//                    "YOUR_CHANNEL_NAME",
-//                    NotificationManager.IMPORTANCE_DEFAULT);
-//            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DISCRIPTION");
-//            mNotificationManager.createNotificationChannel(channel);
-//        }
-//        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
-//                .setSmallIcon(R.mipmap.ic_logo_round) // notification icon
-//                .setContentTitle(pTitle) // title for notification
-//                .setContentText(pMessage)// message for notification
-//                //.setSound(alarmSound) // set alarm sound for notification
-//                .setAutoCancel(true); // clear notification after click
-//        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-//        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        mBuilder.setContentIntent(pi);
-//        mNotificationManager.notify(0, mBuilder.build());
-        Notification notification;
-        PendingIntent contentIntent = PendingIntent.getActivity(NoticeBoardMainActivity.this, 0,
-                new Intent(NoticeBoardMainActivity.this, NoticeBoardMainActivity.class), 0);
-
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                NoticeBoardMainActivity.this);
-        notification = builder.setContentIntent(contentIntent)
-                .setSmallIcon(R.mipmap.ic_logo_round).setTicker(getString(R.string.app_name)).setWhen(0)
-                .setAutoCancel(true).setContentTitle(getString(R.string.app_name))
-                .setContentTitle(pTitle)
-                .setContentText(pMessage).build();
-
-        notificationManager.notify(0 , notification);
-    }
     /**
      * Checks if the application is being sent in the background (i.e behind
      * another application's Activity).
@@ -489,36 +448,24 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
      * @return <code>true</code> if another application will be above this one.
      */
     public static boolean isApplicationSentToBackground(final Context context) {
-        ActivityManager am = (ActivityManager)    context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        @SuppressWarnings("deprecation")
         List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
         if (!tasks.isEmpty()) {
             ComponentName topActivity = tasks.get(0).topActivity;
-            if (!topActivity.getPackageName().equals(context.getPackageName())) {
-                return true;
-            }
+            return !topActivity.getPackageName().equals(context.getPackageName());
         }
-
         return false;
     }
-    private void _setToolbarTitle(String pTitle) {
-        NoticeBoardMainActivity.this.setTitle(pTitle);
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (isApplicationSentToBackground(NoticeBoardMainActivity.this)){
-            _showNotification("Test aus onpause", "messeage aus onpause");
-        }
-    }
 
-    private void _addLogoutReceiver(){
+    private void _addLogoutReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("onReceive","Logout in progress");
+                Log.d("onReceive", "Logout in progress");
                 //At this point you should start the login activity and finish this one
                 finish();
             }

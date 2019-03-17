@@ -58,7 +58,6 @@ import de.haertel.hawapp.campusnoticeboard.util.LastInsert;
 
 public class SettingsActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    public static final String EXTRA_ANNOUNCEMENT_VIEW_MODEL = "de.haertel.hawapp.campusnoticeboard.impl.EXTRA_DATE";
     private final String MENU_ENTRY_STORE_KEY = "menuEntryPreference";
     private final String MY_PREFERENCES = "MyPreferences";
 
@@ -92,7 +91,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         android.support.v7.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_settings);
         //set own Toolbar as ActionBar
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         setTitle(R.string.action_settings);
 
@@ -134,8 +133,6 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
                 cal.add(Calendar.MILLISECOND, (int) offsetMillis);
 
                 Date deleteBeforeDate = cal.getTime();
-                //long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
-                //Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
                 NoticeBoardMainActivity.announcementViewModel.deleteOlderAnnouncements(deleteBeforeDate);
             }
         });
@@ -232,7 +229,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
                 SharedPreferences shared = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
                 SharedPreferences.Editor editor = shared.edit();
                 editor.remove(getString(R.string.lastInsert));
-                editor.putLong(getString(R.string.lastInsert), new Date().getTime()).commit();
+                editor.putLong(getString(R.string.lastInsert), new Date().getTime()).apply();
                 LastInsert.setLastInsert(new Date(shared.getLong(getString(R.string.lastInsert), new Date().getTime())));
 
             }
@@ -273,7 +270,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         List<MenuEntry> menuEntries = _fetchMenuEntries();
         HashSet<Integer> parentIds = new HashSet<Integer>();
         // get all Parent IDs
-        for (MenuEntry menuEntry: menuEntries) {
+        for (MenuEntry menuEntry: Objects.requireNonNull(menuEntries)) {
             parentIds.add(menuEntry.getMenuParentId());
         }
         for (MenuEntry entry: menuEntries) {
@@ -302,8 +299,8 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         String currentUser = CurrentUser.getUsername();
         userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
         SharedPreferences.Editor editor = userPref.edit();
-        editor.remove("AnnouncementBoard").commit();
-        editor.putString("AnnouncementBoard", item).commit();
+        editor.remove("AnnouncementBoard");
+        editor.putString("AnnouncementBoard", item).apply();
         retrnTopic = item;
     }
 
@@ -326,8 +323,9 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
             announcementViewModel = pAnnouncementViewModel;
         }
 
+        @SafeVarargs
         @Override
-        protected Void doInBackground(HashSet<Announcement>... pAnnouncements) {
+        protected final Void doInBackground(HashSet<Announcement>... pAnnouncements) {
             for (Announcement announcement : pAnnouncements[0]) {
                 announcementViewModel.insert(announcement);
             }

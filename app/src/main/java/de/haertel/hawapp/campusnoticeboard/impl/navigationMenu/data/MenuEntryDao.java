@@ -9,6 +9,9 @@ import android.arch.persistence.room.Update;
 
 import java.util.List;
 
+/**
+ *  Data Access Object, for access to Menu Entries.
+ */
 @Dao
 public interface MenuEntryDao {
 
@@ -27,12 +30,4 @@ public interface MenuEntryDao {
     @Query("SELECT * FROM menuEntry_table")
     LiveData<List<MenuEntry>> getAllMenuEntries();
 
-//    @Query("SELECT * FROM menuEntry_table WHERE treeDepth = 0")
-//    LiveData<List<MenuEntry>> getAllRootMenuEntries();
-//
-//    @Query("SELECT * FROM menuEntry_table WHERE (treeDepth = 1 AND menuParentId = (SELECT id FROM menuEntry_table WHERE title LIKE :pTopic))")
-//    LiveData<List<MenuEntry>> getAllNonRootParentEntries(String pTopic);
-//
-//    @Query("SELECT * FROM menuEntry_table WHERE treeDepth = 2")
-//    LiveData<List<MenuEntry>> getAllChildMenuEntries();
 }

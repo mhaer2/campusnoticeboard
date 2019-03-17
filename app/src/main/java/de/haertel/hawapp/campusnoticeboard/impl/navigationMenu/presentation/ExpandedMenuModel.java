@@ -1,8 +1,11 @@
 package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation;
 
+/**
+ * POJO für einen Menüeintrag.
+ */
 public class ExpandedMenuModel {
 
-    String menuName = "";
+    private String menuName = "";
 
     public String getMenuName() {
         return menuName;

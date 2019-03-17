@@ -7,7 +7,7 @@
         android:id="@+id/share"
         android:icon="@drawable/ic_share"
         app:showAsAction="ifRoom"
-        android:title="Share">
+        android:title="@string/share_button_title">
 
     </item>
 

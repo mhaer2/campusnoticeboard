@@ -53,12 +53,12 @@
                         android:id="@+id/detail_day_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginRight="8dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_marginBottom="8dp"
                         android:background="@drawable/circle_background"
                         android:gravity="center"
                         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textSize="18dp" />
+                        android:textSize="@dimen/day_count_text_size" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -69,7 +69,6 @@
                             android:id="@+id/detail_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Titleygnsgfgbhxdfgbhdxgnfgngfjhxsdjnhgjzmsrthshtsthsjtzjsgfhfghfghfgh"
                             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
                         <TextView
@@ -77,14 +76,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                            android:text="01.01.1999" />
+                             />
 
                         <TextView
                             android:id="@+id/detail_author"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                            android:text="Prof. Dr. Albert Einstein" />
+                            />
                     </LinearLayout>
                 </LinearLayout>
                 <ScrollView
@@ -99,9 +98,7 @@
                             android:id="@+id/detail_message"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/detail_header"
-                            android:layout_marginTop="8dp"
-                            android:text="Lorem Ipsum Lorem Ipsum Lorem IIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem IpsuIpsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsupsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum " />
+                            android:layout_marginTop="8dp" />
 
                     </LinearLayout>
 

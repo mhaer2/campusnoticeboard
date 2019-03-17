@@ -1,5 +1,6 @@
 package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -10,6 +11,11 @@ import android.widget.ExpandableListView;
 import android.view.View.OnTouchListener;
 import android.widget.ListAdapter;
 
+/**
+ * Eigene Implementierung des ExpandableListViews,
+ * der es erlaubt,
+ * die ListView innerhalb einer Scrollbar zu verwenden.
+ */
 public class NestedListView extends ExpandableListView implements OnTouchListener, AbsListView.OnScrollListener {
 
     private int listViewTouchAction;
@@ -17,12 +23,18 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
 
     public NestedListView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         listViewTouchAction = -1;
         setOnScrollListener(this);
         setOnTouchListener(this);
     }
 
+    /**
+     * Wird bei einem Klick aufgerufen
+     *
+     * @param v die View
+     * @param event Das Touchevent
+     * @return immer false
+     */
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (getAdapter() != null && getAdapter().getCount() > MAXIMUM_LIST_ITEMS_VIEWABLE) {
@@ -33,11 +45,24 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
         return false;
     }
 
+    /**
+     * Methode ohne Funktion, da nicht implementiert
+     *
+     * @param view        der View
+     * @param scrollState der Status der Scrollleiste.
+     */
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
-
     }
 
+    /**
+     * Bestimmt was beim Scrollen passieren soll.
+     *
+     * @param view             die View in der gescrollt wird.
+     * @param firstVisibleItem erstes Item das sichtbar ist
+     * @param visibleItemCount anzahl der zu sehenden Items.
+     * @param totalItemCount   Anzhal aller Items.
+     */
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         if (getAdapter() != null && getAdapter().getCount() > MAXIMUM_LIST_ITEMS_VIEWABLE) {
@@ -47,6 +72,15 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
         }
     }
 
+
+    /**
+     * Methode, die die Höhe und Breite der View berechnet,
+     * je nachdem wie viele Kinder aufgeklappt sind und wie viele Kinder diese entsprechend haben
+     *
+     * @param widthMeasureSpec  die Benötigte Breite
+     * @param heightMeasureSpec die benötigte Höhe.
+     */
+    @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -63,7 +97,7 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
                     View listItem = listAdapter.getView(listPosition, null, this);
                     //now it will not throw a NPE if listItem is a ViewGroup instance
                     if (listItem instanceof ViewGroup) {
-                        listItem.setLayoutParams(new LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+                        listItem.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
                     }
                     listItem.measure(widthMeasureSpec, heightMeasureSpec);
                     newHeight += listItem.getMeasuredHeight();
@@ -71,10 +105,12 @@ public class NestedListView extends ExpandableListView implements OnTouchListene
                 newHeight += getDividerHeight() * listPosition;
             }
             if ((heightMode == MeasureSpec.AT_MOST) && (newHeight > heightSize)) {
-                    newHeight = heightSize;
+                newHeight = heightSize;
             }
         } else {
             newHeight = getMeasuredHeight();
         }
-        setMeasuredDimension(getMeasuredWidth(), newHeight);    }
+        // setzen der neuen Dimensionen
+        setMeasuredDimension(getMeasuredWidth(), newHeight);
+    }
 }

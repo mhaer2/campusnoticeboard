@@ -1,5 +1,6 @@
 package de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.Observer;
@@ -35,6 +36,10 @@ import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.Expa
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.presentation.ExpandedMenuModel;
 import de.haertel.hawapp.campusnoticeboard.util.AnnouncementTopic;
 
+
+/**
+ * Diese Klasse dient als Handler für die Menüeinträge des Navigationsbaumes.
+ */
 public class NavigationMenuDataHandler {
     private final String MENU_ENTRY_STORE_KEY = "menuEntryPreference";
     private final String MY_PREFERENCES = "MyPreferences";
@@ -50,24 +55,27 @@ public class NavigationMenuDataHandler {
     HashMap<ExpandedMenuModel, List<String>> navigationMenuChildList;
 
     public MenuEntryViewModel menuEntryViewModel;
-
     private Activity mainActivity;
 
     public NavigationMenuDataHandler(Activity pMainActivity) {
         mainActivity = pMainActivity;
     }
 
+    /**
+     * Methode, die den Navigationsbaum mit Daten befüllt und updated falls Netzwerk verfügbar ist und sich am Menübaum etwas geändert hat.
+     * Frägt von Firebase die Daten ab und Cached diese.
+     */
     public void handleNavigationMenuData() {
         facultyMenuExpandableList = (ExpandableListView) mainActivity.findViewById(R.id.navigationmenufaculty);
         generalMenuExpandableList = (ExpandableListView) mainActivity.findViewById(R.id.navigationmenugeneral);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("flamelink/environments/production/navigation/noticeBoards/en-US/items");
+        mDatabase = FirebaseDatabase.getInstance()
+                .getReference("flamelink/environments/production/navigation/noticeBoards/en-US/items");
 
-        //navigationView.setNavigationItemSelectedListener(this);
         menuEntryViewModel = ViewModelProviders.of((FragmentActivity) mainActivity).get(MenuEntryViewModel.class);
 
-        if(! _isNetworkAvailable()){
-            List<MenuEntry> storedMenuEntries =_fetchMenuEntries();
+        if (!_isNetworkAvailable()) {
+            List<MenuEntry> storedMenuEntries = _fetchMenuEntries();
             if (storedMenuEntries != null) {
                 _prepareNavigationMenu(mainActivity.getString(R.string.facultyTopic), storedMenuEntries);
                 _prepareNavigationMenu(mainActivity.getString(R.string.generalTopic), storedMenuEntries);
@@ -75,6 +83,10 @@ public class NavigationMenuDataHandler {
         }
 
         mDatabase.addValueEventListener(new ValueEventListener() {
+            /**
+             * Bei Änderung der Daten in der Firebase Datenbank wird der Navigationsbaum neu befüllt
+             * @param dataSnapshot snapshot von den Daten der angegebnen Referenz.
+             */
             @Override
             @SuppressWarnings("unchecked")
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -83,6 +95,10 @@ public class NavigationMenuDataHandler {
                     menuEntryViewModel.deleteAllMenuEntries();
                     _populateDatabase();
                     menuEntryViewModel.getAllMenuEntries().observe((LifecycleOwner) mainActivity, new Observer<List<MenuEntry>>() {
+                        /**
+                         * Falls sich Daten in der Firebase DB geändert haben wird diese Methode getriggert.
+                         * @param menuEntries die neuen Menueinträge.
+                         */
                         @Override
                         public void onChanged(@Nullable final List<MenuEntry> menuEntries) {
                             if (menuEntries != null && _isNetworkAvailable()) {
@@ -93,17 +109,22 @@ public class NavigationMenuDataHandler {
                         }
                     });
                 }
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                //no implementation
             }
         });
     }
 
-    private boolean _storeMenuEntries(List<MenuEntry> pMenuEntries)    {
+    /**
+     * Speichert die Menüeinträge als schared preference, damit der Menübaum auch ohne Netzwerk aufgebaut werden kann.
+     * @param pMenuEntries die Menüeinträge.
+     * @return true falls erfolgreich.
+     */
+    @SuppressLint("ApplySharedPref")
+    private boolean _storeMenuEntries(List<MenuEntry> pMenuEntries) {
         boolean returnValue = false;
         SharedPreferences sharedPreferences;
         SharedPreferences.Editor editor;
@@ -111,7 +132,6 @@ public class NavigationMenuDataHandler {
 
         Gson gson = new Gson();
         String json = gson.toJson(pMenuEntries);
-
         editor = sharedPreferences.edit();
         editor.remove(MENU_ENTRY_STORE_KEY).commit();
         editor.putString(MENU_ENTRY_STORE_KEY, json);
@@ -119,20 +139,29 @@ public class NavigationMenuDataHandler {
 
         return returnValue;
     }
-    private List<MenuEntry> _fetchMenuEntries(){
+
+    /**
+     * Liefert die in den Shared Preferences gespeicherten Menüeinträge.
+     * @return die Liste der Menüeinträge.
+     */
+    private List<MenuEntry> _fetchMenuEntries() {
         SharedPreferences sharedPreferences;
         sharedPreferences = mainActivity.getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
-        if (sharedPreferences != null){
+        if (sharedPreferences != null) {
             Gson gson = new Gson();
-            String response= sharedPreferences.getString(MENU_ENTRY_STORE_KEY , "");
+            String response = sharedPreferences.getString(MENU_ENTRY_STORE_KEY, "");
             ArrayList<MenuEntry> menuEntryList = gson.fromJson(response,
-                    new TypeToken<List<MenuEntry>>(){}.getType());
+                    new TypeToken<List<MenuEntry>>() {
+                    }.getType());
             return menuEntryList;
-        }else {
+        } else {
             return null;
         }
     }
 
+    /**
+     * Methode, die die Datenbank mit den Menüeinträgen befüllt, falls neue Einträge hinzukommen.
+     */
     private void _populateDatabase() {
         int id;
         int menuParentId;
@@ -165,6 +194,11 @@ public class NavigationMenuDataHandler {
         }
     }
 
+    /**
+     * Bereitet das NavigationsMenü vor, indem es die ListViews mti Daten befüllt.
+     * @param pTopic das Topic welches hier befüllt werden soll (z.B. Fakultäten)
+     * @param pMenuEntries alle Menüeinträge
+     */
     private void _prepareNavigationMenu(String pTopic, List<MenuEntry> pMenuEntries) {
         navigationMenuParentList = new ArrayList<ExpandedMenuModel>();
         navigationMenuChildList = new HashMap<ExpandedMenuModel, List<String>>();
@@ -173,7 +207,6 @@ public class NavigationMenuDataHandler {
 
         List<MenuEntry> parentEntries = new ArrayList<MenuEntry>();
         List<MenuEntry> childEntries = new ArrayList<MenuEntry>();
-
 
         int rootId = -1;
         for (MenuEntry entry : pMenuEntries) {
@@ -199,7 +232,6 @@ public class NavigationMenuDataHandler {
             }
         }
 
-
         for (MenuEntry menuEntry : parentEntries) {
             expandedMenuModel = new ExpandedMenuModel();
             childsToAdd = new ArrayList<String>();
@@ -222,7 +254,7 @@ public class NavigationMenuDataHandler {
                 generalMenuExpandableList.setAdapter(mGeneralMenuAdapter);
             }
         }
-
+        // Sortieren der Liste nach Alphabet
         Collections.sort(navigationMenuParentList, new Comparator<ExpandedMenuModel>() {
             @Override
             public int compare(ExpandedMenuModel model1, ExpandedMenuModel model2) {
@@ -230,6 +262,7 @@ public class NavigationMenuDataHandler {
             }
         });
         for (List<String> list : navigationMenuChildList.values()) {
+            // Sortieren der Liste nach Alphabet
             Collections.sort(list, new Comparator<String>() {
                 @Override
                 public int compare(String string1, String string2) {
@@ -240,8 +273,20 @@ public class NavigationMenuDataHandler {
 
     }
 
+    /**
+     * Initialisieren der OnClick Listener für die Menüeinträge.
+     */
     public void initNavigationListListener() {
         facultyMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            /**
+             * OnChildKlick der Fakultäten-Gruppen
+             * @param expandableListView die ListView
+             * @param view die aktelle View
+             * @param groupPosition die GruppenPosition (Informatik, Maschinenbau...)
+             * @param childPosition die Kindposition des Schwarzen Brettes
+             * @param id die id
+             * @return true wenn gedrückt
+             */
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
@@ -249,30 +294,30 @@ public class NavigationMenuDataHandler {
                 return false;
             }
         });
-        facultyMenuExpandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
-                //Log.d("DEBUG", "heading clicked");
-                return false;
-            }
-        });
+
         generalMenuExpandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            /**
+             * OnChildKlick der Allgemein-Gruppen
+             * @param expandableListView die ListView
+             * @param view die aktelle View
+             * @param groupPosition die GruppenPosition (Informatik, Maschinenbau...)
+             * @param childPosition die Kindposition des Schwarzen Brettes
+             * @param id die id
+             * @return true wenn gedrückt
+             */
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 AnnouncementTopic.setTopic(expandableListView.getExpandableListAdapter().getChild(groupPosition, childPosition).toString());
                 mainActivity.setTitle(AnnouncementTopic.getTopic());
-                return false;
-            }
-        });
-        generalMenuExpandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
-                //Log.d("DEBUG", "heading clicked");
                 return false;
             }
         });
     }
 
+    /**
+     * Checkt auf Netzwer Verfügbarkeit
+     * @return true falls verfügbar.
+     */
     private boolean _isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) mainActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
