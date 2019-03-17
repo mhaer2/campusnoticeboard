@@ -6,8 +6,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,6 +26,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -83,11 +86,13 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notice_board_main);
 
+        _addLogoutReceiver();
+
         mDatabase = FirebaseDatabase.getInstance()
                 .getReference("flamelink/environments/production/content/announcements/en-US");
 
         String currentUser = CurrentUser.getUsername();
-        final SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
         String userName = userPref.getString("Username", "none");
         announcementBoard = userPref.getString("AnnouncementBoard", "none");
 
@@ -178,6 +183,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             _performActionForDatabaseInit();
         } else {
             // Ansonsten Default-Topic einstellen.
+            _performActionForDatabaseInit();
             AnnouncementTopic.setTopic(userPref.getString("AnnouncementBoard", "none"));
             _addNewDatabaseEntryListener();
         }
@@ -220,6 +226,11 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     @Override
     protected void onResume() {
         super.onResume();
+        if (!FirstStart.isFirstStart()) {
+            SharedPreferences currentUserPref = getSharedPreferences(CurrentUser.getUsername() + "Pref", MODE_PRIVATE);
+            AnnouncementTopic.initTopic(currentUserPref.getString("AnnouncementBoard", "none"));
+        }
+        this.setTitle(AnnouncementTopic.getTopic());
         _setNavigationHeaderButtonText();
     }
 
@@ -457,5 +468,17 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     private void _setToolbarTitle(String pTitle) {
         NoticeBoardMainActivity.this.setTitle(pTitle);
+    }
+    private void _addLogoutReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+                //At this point you should start the login activity and finish this one
+                finish();
+            }
+        }, intentFilter);
     }
 }

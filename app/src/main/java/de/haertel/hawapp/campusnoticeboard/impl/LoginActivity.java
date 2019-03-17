@@ -1,13 +1,16 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -44,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        _addLogoutReceiver();
         SharedPreferences myPref = getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
         if (!myPref.contains(getString(R.string.preferenceKeyFirstStart))) {
             FirstStart.setFirstStart(true);
@@ -177,6 +181,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 Intent myIntent = new Intent(LoginActivity.this, NoticeBoardMainActivity.class);
                 LoginActivity.this.startActivity(myIntent);
+
                 finish();
             } else {
                 mUsernameView.setError(getString(R.string.error_incorrect_username));
@@ -188,6 +193,18 @@ public class LoginActivity extends AppCompatActivity {
         protected void onCancelled() {
             mAuthTask = null;
         }
+    }
+    private void _addLogoutReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+                //At this point you should start the login activity and finish this one
+                finish();
+            }
+        }, intentFilter);
     }
 }
 

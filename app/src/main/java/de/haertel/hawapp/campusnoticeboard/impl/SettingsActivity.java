@@ -1,7 +1,9 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -10,11 +12,13 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 
@@ -30,15 +34,18 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import de.haertel.hawapp.campusnoticeboard.R;
 import de.haertel.hawapp.campusnoticeboard.impl.navigationMenu.data.MenuEntry;
@@ -73,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        _addLogoutReceiver();
         setContentView(R.layout.activity_settings);
         returnDeleteOlder = false;
         settingsDeleteOlderEntriesButton = findViewById(R.id.settings_delete_older_entries);
@@ -117,17 +125,18 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         settingsDeleteOlderEntriesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                returnDeleteOlder = true;
-//                View view = new View(SettingsActivity.this);
-//                int pos = menuEntryTitles.indexOf(announcementBoard);
-    //            SettingsActivity.this.onItemSelected(settingsDefaultDepartmentSpinner, view, 0, 0);
-      //          SettingsActivity.this.onItemSelected(settingsDefaultDepartmentSpinner, view, pos, pos);
-     //           settingsDefaultDepartmentSpinner.setSelection(0);
-       //         settingsDefaultDepartmentSpinner.setSelection(pos);
-                //NoticeBoardMainActivity.deleteOlderEntries();
+                TimeZone timeZone = TimeZone.getDefault();
                 long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
-                Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
-                NoticeBoardMainActivity.announcementViewModel.deleteOlderAnnouncements(deleteBefore);
+                long timeZoneOffset =  timeZone.getRawOffset();
+                long offsetMillis = -1 * (sevenDaysInMillis + timeZoneOffset);
+                Calendar cal = new GregorianCalendar(); // creates calendar
+                cal.setTime(LastInsert.getLastInsert()); // sets calendar time/date
+                cal.add(Calendar.MILLISECOND, (int) offsetMillis);
+
+                Date deleteBeforeDate = cal.getTime();
+                //long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
+                //Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
+                NoticeBoardMainActivity.announcementViewModel.deleteOlderAnnouncements(deleteBeforeDate);
             }
         });
         settingsRestoreEntriesButton.setOnClickListener(new View.OnClickListener() {
@@ -141,18 +150,29 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
-
+        settingsNotificationSwitch.setChecked(pushEnabled);
+        settingsNotificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                String currentUser = CurrentUser.getUsername();
+                userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+                SharedPreferences.Editor editor = userPref.edit();
+                editor.putBoolean("PushEnabled", isChecked).apply();
+            }
+        });
 
         settingsLogoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 CurrentUser.setUsername(null);
+                Intent broadcastIntent = new Intent();
+                broadcastIntent.setAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+                sendBroadcast(broadcastIntent);
                 Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-
     }
 
     private void _repopulateEntries() {
@@ -209,7 +229,6 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
 
                 new RepoulateEntriesAsyncTask(NoticeBoardMainActivity.announcementViewModel).execute(announcements);
 
-
                 SharedPreferences shared = getApplicationContext().getSharedPreferences(getString(R.string.preferenceName), MODE_PRIVATE);
                 SharedPreferences.Editor editor = shared.edit();
                 editor.remove(getString(R.string.lastInsert));
@@ -246,9 +265,6 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-//        Intent myIntent = new Intent(SettingsActivity.this, NoticeBoardMainActivity.class);
-//        myIntent.putExtra(NoticeBoardMainActivity.EXTRA_DELETE_OLDER, returnDeleteOlder);
-//        SettingsActivity.this.startActivity(myIntent);
         finish();
     }
 
@@ -288,7 +304,6 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         SharedPreferences.Editor editor = userPref.edit();
         editor.remove("AnnouncementBoard").commit();
         editor.putString("AnnouncementBoard", item).commit();
-        //AnnouncementTopic.setTopic(item);
         retrnTopic = item;
     }
 
@@ -322,4 +337,16 @@ public class SettingsActivity extends AppCompatActivity implements AdapterView.O
         }
     }
 
+    private void _addLogoutReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+                //At this point you should start the login activity and finish this one
+                finish();
+            }
+        }, intentFilter);
+    }
 }

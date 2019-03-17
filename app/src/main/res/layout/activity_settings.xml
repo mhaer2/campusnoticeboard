@@ -43,7 +43,7 @@
                 android:drawablePadding="12dp"
                 android:ellipsize="end"
                 android:textColor="@color/black"
-                android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                 android:textSize="20sp"
                 android:drawableStart="@drawable/ic_delete_black_24dp"
                 tools:ignore="RtlSymmetry" />
@@ -60,7 +60,7 @@
                 android:drawablePadding="12dp"
                 android:ellipsize="end"
                 android:textColor="@color/black"
-                android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                 android:textSize="20sp"
                 android:drawableStart="@drawable/ic_settings_backup_restore_black_24dp"
                 tools:ignore="RtlSymmetry" />
@@ -84,20 +84,41 @@
                     android:layout_height="wrap_content"
                     android:textAllCaps="false"
                     android:text="@string/default_board"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                     android:ellipsize="end"
                     android:textColor="@color/black"
                     android:textSize="20sp"
                     android:maxLines="2"
                     />
-                <Spinner
-                    android:id="@+id/settings_default_department_spinner"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
-                    android:spinnerMode="dropdown">
+                    android:background="@drawable/default_department_spinner_bg"
+                    android:orientation="horizontal">
 
-                </Spinner>
+                    <Spinner
+                        android:id="@+id/settings_default_department_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@android:color/transparent"
+                        android:spinnerMode="dropdown">
+
+                    </Spinner>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_arrow_drop_down_black_24dp" />
+
+                </RelativeLayout>
+
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -117,7 +138,7 @@
                     android:layout_height="wrap_content"
                     android:textAllCaps="false"
                     android:text="@string/push_notifications"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                     android:ellipsize="end"
                     android:textColor="@color/black"
                     android:textSize="20sp"
@@ -139,7 +160,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                android:textAppearance="@style/TextAppearance.AppCompat.Menu"
                 android:paddingStart="8dp"
                 android:background="@drawable/settings_button_bg"
                 android:textAllCaps="false"

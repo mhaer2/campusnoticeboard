@@ -106,9 +106,6 @@ public abstract class AnnouncementDatabase extends RoomDatabase {
                             announcements.add(new Announcement(headline, author, message, date, noticeboard));
                         }
                     }
-                    Announcement leichtbauAnnouncement = new Announcement("populateTest", "Martin Härtel", "populiere", new Date(), "Leichtbau und Simulation, M.Sc.");
-                    announcements.add(leichtbauAnnouncement);
-                    announcements.add(new Announcement("populateTest", "Martin Härtel", "populiere IF", new Date(), "Informatik, B.Sc."));
 
                     //noinspection unchecked
                     new PopulateDbAsyncTask(instance).execute(announcements);

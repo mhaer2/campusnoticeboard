@@ -1,9 +1,13 @@
 package de.haertel.hawapp.campusnoticeboard.impl;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,6 +40,7 @@ public class DetailViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail_view);
 
+        _addLogoutReceiver();
         detailViewHeadline = findViewById(R.id.detail_title);
         detailViewAuthor = findViewById(R.id.detail_author);
         detailViewMessage = findViewById(R.id.detail_message);
@@ -95,5 +100,18 @@ public class DetailViewActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    private void _addLogoutReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("de.haertel.hawapp.campusnoticeboard.impl.ACTION_LOGOUT");
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+                //At this point you should start the login activity and finish this one
+                finish();
+            }
+        }, intentFilter);
     }
 }
