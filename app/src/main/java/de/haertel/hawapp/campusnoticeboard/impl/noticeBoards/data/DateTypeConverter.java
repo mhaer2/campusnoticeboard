@@ -8,7 +8,7 @@ import java.util.Date;
  * Da in der Datenbank kein Date-Objekt gespeichert werden kann,
  * konvertiert dieser DateTypeKonverter die Einheiten
  */
-class DateTypeConverter {
+public class DateTypeConverter {
 
     /**
      * Konvertiert den Timestamp in ein Datum.
@@ -17,7 +17,7 @@ class DateTypeConverter {
      * @return das Datum
      */
     @TypeConverter
-    static Date fromTimestamp(Long value) {
+    public static Date fromTimestamp(Long value) {
         return value == null ? null : new Date(value);
     }
 
@@ -28,7 +28,7 @@ class DateTypeConverter {
      * @return der Timestamp
      */
     @TypeConverter
-    static Long dateToTimestamp(Date date) {
+    public static Long dateToTimestamp(Date date) {
         return date == null ? null : date.getTime();
     }
 }

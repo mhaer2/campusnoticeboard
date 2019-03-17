@@ -23,4 +23,5 @@ public class ExampleInstrumentedTest {
 
         assertEquals("de.haertel.hawapp.campusnoticeboard", appContext.getPackageName());
     }
+
 }

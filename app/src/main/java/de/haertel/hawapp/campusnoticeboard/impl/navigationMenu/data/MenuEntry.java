@@ -21,7 +21,7 @@ public class MenuEntry {
     @ColumnInfo(name = "title")
     private String title;
 
-    MenuEntry(int id, int menuParentId, String title) {
+    public MenuEntry(int id, int menuParentId, String title) {
         this.id = id;
         this.menuParentId = menuParentId;
         this.title = title;

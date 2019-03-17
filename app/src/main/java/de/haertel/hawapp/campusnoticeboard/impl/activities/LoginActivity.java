@@ -247,5 +247,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         }, intentFilter);
     }
+
 }
 
