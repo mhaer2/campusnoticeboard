@@ -103,4 +103,9 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="restore_all_entries">Restore all Entries</string>
+    <string name="delete_older_entries_7t"><![CDATA[Delete older Entries (>7T)]]></string>
+    <string name="default_board">Default Board</string>
+    <string name="push_notifications">Push Notifications</string>
+    <string name="logout">Logout</string>
 </resources>

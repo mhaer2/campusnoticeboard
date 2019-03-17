@@ -78,6 +78,8 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
     private ChildEventListener childEventListener;
     private NotificationManagerCompat notificationManager;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +89,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
                 .getReference("flamelink/environments/production/content/announcements/en-US");
 
         String currentUser = CurrentUser.getUsername();
-        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+        final SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
         String userName = userPref.getString("Username", "none");
         announcementBoard = userPref.getString("AnnouncementBoard", "none");
 
@@ -112,7 +114,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         toggleButton.syncState();
 
 
-        RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
+        final RecyclerView recyclerView = findViewById(R.id.announcement_preview_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         final AnnouncementAdapter announcementAdapter = new AnnouncementAdapter();
         recyclerView.setAdapter(announcementAdapter);
@@ -178,7 +180,7 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
             _performActionForDatabaseInit();
         } else {
             // Ansonsten Default-Topic einstellen.
-            AnnouncementTopic.setTopic(announcementBoard);
+            AnnouncementTopic.setTopic(userPref.getString("AnnouncementBoard", "none"));
             _addNewDatabaseEntryListener();
         }
 
@@ -211,6 +213,27 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        _setNavigationHeaderButtonText();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        _setNavigationHeaderButtonText();
+    }
+    private void _setNavigationHeaderButtonText(){
+        String currentUser = CurrentUser.getUsername();
+        SharedPreferences userPref = getSharedPreferences(currentUser + "Pref", MODE_PRIVATE);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        ViewGroup navigationViewHeader = (ViewGroup) navigationView.getHeaderView(0);
+        View parentView = navigationViewHeader.getRootView();
+        Button navigationHeaderDefaultDepartmentButton = (Button) parentView.findViewById(R.id.navigation_header_defaultDepartment_button);
+        navigationHeaderDefaultDepartmentButton.setText(userPref.getString("AnnouncementBoard", "none"));
+    }
 
     /**
      * Um die Room Datenbank mittel Callback zu initialisieren und somit mit Daten zu befüllen,
@@ -269,15 +292,17 @@ public class NoticeBoardMainActivity extends AppCompatActivity implements Naviga
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.delete_older_announcements:
-                long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
-                Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
-
-                announcementViewModel.deleteOlderAnnouncements(deleteBefore);
-                return true;
-//            case R.id.action_settings:
+//            case R.id.delete_older_announcements:
+//                long sevenDaysInMillis = 7 * 24 * 3600 * 1000;
+//                Date deleteBefore = new Date(new Date().getTime() - sevenDaysInMillis);
 //
-//                break;
+//                announcementViewModel.deleteOlderAnnouncements(deleteBefore);
+            case R.id.open_settings:
+                Intent intent = new Intent(NoticeBoardMainActivity.this, SettingsActivity.class);
+                //intent.putExtra(SettingsActivity.EXTRA_ANNOUNCEMENT_VIEW_MODEL, this);
+                startActivity(intent);
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }

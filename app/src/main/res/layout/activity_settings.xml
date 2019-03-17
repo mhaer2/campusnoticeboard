@@ -9,7 +9,7 @@
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_detail"
+        android:id="@+id/toolbar_settings"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
@@ -30,56 +30,40 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <LinearLayout
+            <Button
+                android:id="@+id/settings_delete_older_entries"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
                 android:background="@drawable/settings_button_bg"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_delete_black_24dp"
-                    android:padding="12dp"
-                    android:paddingStart="8dp"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAllCaps="false"
-                    android:text="Delete older Entries"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:ellipsize="end"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:maxLines="2"
-                    />
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    />
-                <Button
-                    android:id="@+id/settings_delete_old_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/settings_delete_older_button"
-                    android:textAllCaps="false"
-                    android:text="Delete >7T"
-                    android:paddingEnd="8dp"
-                    android:paddingStart="8dp"
-                    android:paddingTop="0dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="@color/black"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:textSize="16sp"
-                    />
-            </LinearLayout>
+                android:textAllCaps="false"
+                android:text="@string/delete_older_entries_7t"
+                android:maxLines="2"
+                android:drawablePadding="12dp"
+                android:ellipsize="end"
+                android:textColor="@color/black"
+                android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                android:textSize="20sp"
+                android:drawableStart="@drawable/ic_delete_black_24dp"
+                tools:ignore="RtlSymmetry" />
+            <Button
+                android:id="@+id/settings_restore_entries"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
+                android:background="@drawable/settings_button_bg"
+                android:textAllCaps="false"
+                android:text="@string/restore_all_entries"
+                android:maxLines="2"
+                android:drawablePadding="12dp"
+                android:ellipsize="end"
+                android:textColor="@color/black"
+                android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                android:textSize="20sp"
+                android:drawableStart="@drawable/ic_settings_backup_restore_black_24dp"
+                tools:ignore="RtlSymmetry" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -92,13 +76,14 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_star"
                     android:padding="12dp"
-                    android:paddingStart="8dp"/>
+                    android:paddingStart="8dp"
+                    tools:ignore="RtlSymmetry" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAllCaps="false"
-                    android:text="Default Board"
+                    android:text="@string/default_board"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:ellipsize="end"
                     android:textColor="@color/black"
@@ -106,8 +91,10 @@
                     android:maxLines="2"
                     />
                 <Spinner
+                    android:id="@+id/settings_default_department_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:spinnerMode="dropdown">
 
                 </Spinner>
@@ -123,12 +110,13 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_notifications"
                     android:padding="12dp"
-                    android:paddingStart="8dp"/>
+                    android:paddingStart="8dp"
+                    tools:ignore="RtlSymmetry" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAllCaps="false"
-                    android:text="Push Notifications"
+                    android:text="@string/push_notifications"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:ellipsize="end"
                     android:textColor="@color/black"
@@ -147,23 +135,6 @@
                     />
             </LinearLayout>
             <Button
-                android:id="@+id/settings_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingStart="8dp"
-                android:background="@drawable/settings_button_bg"
-                android:textAllCaps="false"
-                android:text="Info"
-                android:maxLines="2"
-                android:drawablePadding="12dp"
-                android:ellipsize="end"
-                android:textColor="@color/black"
-                android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                android:textSize="20sp"
-                android:drawableStart="@drawable/ic_info"
-                />
-            <Button
                 android:id="@+id/settings_logout_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -172,14 +143,14 @@
                 android:paddingStart="8dp"
                 android:background="@drawable/settings_button_bg"
                 android:textAllCaps="false"
-                android:text="Logout"
+                android:text="@string/logout"
                 android:maxLines="2"
                 android:drawablePadding="12dp"
                 android:ellipsize="end"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:drawableStart="@drawable/ic_exit_to_app"
-                />
+                tools:ignore="RtlSymmetry" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
